@@ -2,6 +2,10 @@
 
     class SystemController extends BaseController {
 
+        public function __construct() {
+            parent::__construct();
+        }
+
         public function healthCheck() {
             $core = Core::getInstance();
             $systemInfo = $core->getSystemInfo();
@@ -22,5 +26,9 @@
                 'system_info' => $systemInfo,
                 'plugins_stats' => $pluginsStats
             ]);
+        }
+
+        protected function getCurrentPage(): string {
+            return 'system';
         }
     }

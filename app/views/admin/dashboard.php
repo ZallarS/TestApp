@@ -189,7 +189,7 @@
 
         .plugin-header {
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 15px;
         }
@@ -557,26 +557,29 @@
                                 <?php endif; ?>
                             </td>
                             <td class="plugin-actions">
-                                <form method="POST" action="/admin/plugins/toggle" style="display: inline;">
-                                    <input type="hidden" name="plugin_name" value="<?php echo $name; ?>">
-                                    <input type="hidden" name="action" value="deactivate">
-                                    <button type="submit" class="btn btn-warning">⏸️ Деактивировать</button>
-                                </form>
+                                <?php if (Core::getInstance()->getPluginManager()->isActive($name)): ?>
+                                    <form method="POST" action="/admin/plugins/toggle">
+                                        <input type="hidden" name="plugin_name" value="<?php echo $name; ?>">
+                                        <input type="hidden" name="action" value="deactivate">
+                                        <button type="submit" class="btn btn-warning">⏸️ Деактивировать</button>
+                                    </form>
                                 <?php else: ?>
-                                    <form method="POST" action="/admin/plugins/toggle" style="display: inline;">
+                                    <form method="POST" action="/admin/plugins/toggle">
                                         <input type="hidden" name="plugin_name" value="<?php echo $name; ?>">
                                         <input type="hidden" name="action" value="activate">
                                         <button type="submit" class="btn btn-success">▶️ Активировать</button>
                                     </form>
                                 <?php endif; ?>
 
-                                <form method="POST" action="/admin/plugins/install">
+                                <form method="POST" action="/admin/plugins/toggle">
                                     <input type="hidden" name="plugin_name" value="<?php echo $name; ?>">
+                                    <input type="hidden" name="action" value="install">
                                     <button type="submit" class="btn btn-primary">📦 Установить</button>
                                 </form>
 
-                                <form method="POST" action="/admin/plugins/uninstall">
+                                <form method="POST" action="/admin/plugins/toggle">
                                     <input type="hidden" name="plugin_name" value="<?php echo $name; ?>">
+                                    <input type="hidden" name="action" value="uninstall">
                                     <button type="submit" class="btn btn-danger">🗑️ Удалить</button>
                                 </form>
                             </td>

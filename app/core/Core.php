@@ -6,9 +6,8 @@
         private $config;
 
         public function getPluginsStats() {
-            $pluginManager = $this->getPluginManager();
+            $pluginManager = $this->getManager('plugin');
             $allPlugins = $pluginManager->getPlugins();
-
             $systemPlugins = $pluginManager->getSystemPlugins();
             $userPlugins = $pluginManager->getUserPlugins();
 
@@ -57,6 +56,7 @@
             $this->initializeManagers();
         }
 
+
         private function initializeManagers(): void {
             $this->managers = [
                 'hook' => new HookManager(),
@@ -75,31 +75,34 @@
             $this->managers['router']->dispatch();
         }
 
-        private function initDatabase() {
+        private function initDatabase(): void {
             // Заглушка для инициализации БД
-            // В реальной реализации здесь будет подключение к БД
         }
 
-        private function registerRoutes() {
+        private function registerRoutes(): void {
+            $router = $this->getManager('router');
+
             // Главная страница
-            $this->router->addRoute('GET', '/', 'HomeController@index');
+            $router->addRoute('GET', '/', 'HomeController@index');
 
-            // Админка (объединенная)
-            $this->router->addRoute('GET', '/admin', 'AdminController@dashboard');
-            $this->router->addRoute('POST', '/admin/plugins/activate', 'AdminController@activatePlugin');
-            $this->router->addRoute('POST', '/admin/plugins/deactivate', 'AdminController@deactivatePlugin');
+            // Админка
+            $router->addRoute('GET', '/admin', 'AdminController@dashboard');
+            $router->addRoute('POST', '/admin/plugins/toggle', 'AdminController@togglePlugin');
 
-            // Системные маршруты
-            $this->router->addRoute('GET', '/system/health', 'SystemController@healthCheck');
-            $this->router->addRoute('GET', '/system/info', 'SystemController@systemInfo');
+            // Системные API
+            $router->addRoute('GET', '/system/health', 'SystemController@healthCheck');
+            $router->addRoute('GET', '/system/info', 'SystemController@systemInfo');
+
+            // Тестовый маршрут
+            $router->addRoute('GET', '/test', 'TestController@simple');
         }
 
         public function getRouter() {
             return $this->router;
         }
 
-        public function getPluginManager() {
-            return $this->pluginManager;
+        public function getPluginManager(): PluginManager {
+            return $this->managers['plugin'];
         }
 
         public function getMigrationManager() {

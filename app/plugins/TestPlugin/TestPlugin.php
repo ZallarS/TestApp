@@ -1,11 +1,11 @@
 <?php
 
     class TestPlugin extends BasePlugin {
-        protected $name = 'testplugin';
-        protected $version = '1.0.0';
-        protected $description = 'Тестовый плагин';
+        protected string $name = 'testplugin';
+        protected string $version = '1.0.0';
+        protected string $description = 'Тестовый плагин';
 
-        public function initialize() {
+        public function initialize(): void {
             error_log("TestPlugin initialized");
         }
     }
