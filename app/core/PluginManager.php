@@ -290,4 +290,243 @@ class PluginManager {
     public function getUserPlugins(): array {
         return $this->plugins;
     }
+
+    private function loadPluginWithDependencies(string $basePath, string $folder): ?BasePlugin {
+        $plugin = $this->loadPlugin($basePath, $folder);
+
+        if ($plugin) {
+            // Проверяем зависимости перед полной загрузкой
+            $dependencyErrors = $this->checkDependencies($plugin);
+
+            if (!empty($dependencyErrors)) {
+                error_log("Plugin {$folder} has dependency errors: " . implode(', ', $dependencyErrors));
+
+                // Можно либо пропустить плагин, либо загрузить с предупреждениями
+                // В данном случае пропускаем проблемные плагины
+                return null;
+            }
+
+            // Проверяем конфликты
+            $conflictErrors = $this->checkConflicts($plugin);
+            if (!empty($conflictErrors)) {
+                error_log("Plugin {$folder} has conflicts: " . implode(', ', $conflictErrors));
+                return null;
+            }
+        }
+
+        return $plugin;
+    }
+
+    /**
+     * Проверяет зависимости плагина
+     */
+    public function checkDependencies(BasePlugin $plugin): array {
+        $errors = [];
+        $dependencies = $plugin->getDependencies();
+
+        foreach ($dependencies as $depName => $versionConstraint) {
+            $depPlugin = $this->getPlugin($depName);
+
+            if (!$depPlugin) {
+                $errors[] = "Missing dependency: {$depName} {$versionConstraint}";
+                continue;
+            }
+
+            if (!$this->isActive($depName)) {
+                $errors[] = "Dependency not active: {$depName}";
+                continue;
+            }
+
+            if (!BasePlugin::versionMatches($depPlugin->getVersion(), $versionConstraint)) {
+                $errors[] = "Version mismatch: {$depName} has {$depPlugin->getVersion()}, requires {$versionConstraint}";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Проверяет конфликты плагина
+     */
+    public function checkConflicts(BasePlugin $plugin): array {
+        $errors = [];
+        $conflicts = $plugin->getConflicts();
+
+        foreach ($conflicts as $conflictName => $reason) {
+            $conflictPlugin = $this->getPlugin($conflictName);
+
+            if ($conflictPlugin && $this->isActive($conflictName)) {
+                $errors[] = "Conflict with {$conflictName}: {$reason}";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Получает рекомендуемые плагины
+     */
+    public function getRecommendedPlugins(BasePlugin $plugin): array {
+        $recommendations = [];
+        $recommends = $plugin->getRecommends();
+
+        foreach ($recommends as $recName => $versionConstraint) {
+            $recPlugin = $this->getPlugin($recName);
+
+            if (!$recPlugin || !$this->isActive($recName)) {
+                $recommendations[] = [
+                    'name' => $recName,
+                    'constraint' => $versionConstraint,
+                    'installed' => (bool)$recPlugin,
+                    'active' => $recPlugin ? $this->isActive($recName) : false
+                ];
+            }
+        }
+
+        return $recommendations;
+    }
+
+    /**
+     * Активирует плагин и все его зависимости
+     */
+    public function activatePluginWithDependencies(string $pluginName): array {
+        $results = [
+            'success' => [],
+            'errors' => [],
+            'warnings' => []
+        ];
+
+        $plugin = $this->getPlugin($pluginName);
+        if (!$plugin) {
+            $results['errors'][] = "Plugin {$pluginName} not found";
+            return $results;
+        }
+
+        // Проверяем зависимости
+        $dependencyErrors = $this->checkDependencies($plugin);
+        if (!empty($dependencyErrors)) {
+            $results['errors'] = array_merge($results['errors'], $dependencyErrors);
+            return $results;
+        }
+
+        // Проверяем конфликты
+        $conflictErrors = $this->checkConflicts($plugin);
+        if (!empty($conflictErrors)) {
+            $results['errors'] = array_merge($results['errors'], $conflictErrors);
+            return $results;
+        }
+
+        // Активируем зависимости
+        $dependencies = $plugin->getDependencies();
+        foreach ($dependencies as $depName => $versionConstraint) {
+            if (!$this->isActive($depName)) {
+                $depResults = $this->activatePluginWithDependencies($depName);
+                $results['success'] = array_merge($results['success'], $depResults['success']);
+                $results['errors'] = array_merge($results['errors'], $depResults['errors']);
+                $results['warnings'] = array_merge($results['warnings'], $depResults['warnings']);
+            }
+        }
+
+        // Активируем основной плагин
+        if ($this->activatePlugin($pluginName)) {
+            $results['success'][] = "Plugin {$pluginName} activated successfully";
+        } else {
+            $results['errors'][] = "Failed to activate plugin {$pluginName}";
+        }
+
+        // Показываем рекомендации
+        $recommendations = $this->getRecommendedPlugins($plugin);
+        foreach ($recommendations as $rec) {
+            $results['warnings'][] = "Recommended plugin: {$rec['name']} {$rec['constraint']}";
+        }
+
+        return $results;
+    }
+
+    /**
+     * Получает информацию о зависимостях плагина
+     */
+    public function getDependencyInfo(string $pluginName): array {
+        $plugin = $this->getPlugin($pluginName);
+        if (!$plugin) {
+            return [];
+        }
+
+        $info = [
+            'dependencies' => [],
+            'conflicts' => [],
+            'recommends' => [],
+            'replaces' => []
+        ];
+
+        // Зависимости
+        foreach ($plugin->getDependencies() as $depName => $constraint) {
+            $depPlugin = $this->getPlugin($depName);
+            $info['dependencies'][] = [
+                'name' => $depName,
+                'constraint' => $constraint,
+                'installed' => (bool)$depPlugin,
+                'active' => $depPlugin ? $this->isActive($depName) : false,
+                'version' => $depPlugin ? $depPlugin->getVersion() : null,
+                'satisfied' => $depPlugin ? BasePlugin::versionMatches($depPlugin->getVersion(), $constraint) : false
+            ];
+        }
+
+        // Конфликты
+        foreach ($plugin->getConflicts() as $conflictName => $reason) {
+            $conflictPlugin = $this->getPlugin($conflictName);
+            $info['conflicts'][] = [
+                'name' => $conflictName,
+                'reason' => $reason,
+                'installed' => (bool)$conflictPlugin,
+                'active' => $conflictPlugin ? $this->isActive($conflictName) : false
+            ];
+        }
+
+        // Рекомендации
+        foreach ($plugin->getRecommends() as $recName => $constraint) {
+            $recPlugin = $this->getPlugin($recName);
+            $info['recommends'][] = [
+                'name' => $recName,
+                'constraint' => $constraint,
+                'installed' => (bool)$recPlugin,
+                'active' => $recPlugin ? $this->isActive($recName) : false
+            ];
+        }
+
+        // Замены
+        foreach ($plugin->getReplaces() as $replaceName => $constraint) {
+            $replacePlugin = $this->getPlugin($replaceName);
+            $info['replaces'][] = [
+                'name' => $replaceName,
+                'constraint' => $constraint,
+                'installed' => (bool)$replacePlugin,
+                'active' => $replacePlugin ? $this->isActive($replaceName) : false
+            ];
+        }
+
+        return $info;
+    }
+
+    /**
+     * Получает плагины, которые зависят от указанного плагина
+     */
+    public function getDependentPlugins(string $pluginName): array {
+        $dependents = [];
+
+        foreach ($this->getPlugins() as $name => $plugin) {
+            $dependencies = $plugin->getDependencies();
+            if (array_key_exists($pluginName, $dependencies)) {
+                $dependents[] = [
+                    'name' => $name,
+                    'version' => $plugin->getVersion(),
+                    'constraint' => $dependencies[$pluginName],
+                    'active' => $this->isActive($name)
+                ];
+            }
+        }
+
+        return $dependents;
+    }
+
 }

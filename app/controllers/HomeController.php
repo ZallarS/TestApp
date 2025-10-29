@@ -4,7 +4,7 @@
 
         public function __construct() {
             parent::__construct();
-            $this->setLayout(false); // Используем layout из шаблона
+            $this->setLayout(false);
         }
 
         public function index() {
@@ -18,7 +18,8 @@
                 'system_info' => $systemInfo
             ];
 
-            $this->render('home', $data);
+            // Теперь ищет в SystemCorePlugin/views/home/home.php
+            $this->render('home/home', $data);
         }
 
         protected function getCurrentPage(): string {

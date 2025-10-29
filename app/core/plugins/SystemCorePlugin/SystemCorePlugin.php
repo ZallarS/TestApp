@@ -11,8 +11,9 @@ class SystemCorePlugin extends BasePlugin {
         // Регистрируем системные маршруты
         $this->registerSystemRoutes();
 
-        // Регистрируем пути к шаблонам
+        // Регистрируем пути к шаблонам плагина
         $this->registerTemplatePaths();
+
     }
 
     private function registerSystemRoutes(): void {
@@ -35,8 +36,8 @@ class SystemCorePlugin extends BasePlugin {
             $templateManager = Core::getInstance()->getManager('template');
             $pluginViewsPath = __DIR__ . '/views/';
 
-            // Регистрируем основной путь к шаблонам плагина
-            $templateManager->addPath($pluginViewsPath, 'systemcore');
+            // Регистрируем путь плагина с высоким приоритетом
+            $templateManager->addPath($pluginViewsPath, 'plugin');
 
             error_log("System template paths registered: " . $pluginViewsPath);
         } catch (Exception $e) {

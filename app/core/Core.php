@@ -56,7 +56,6 @@
             $this->initializeManagers();
         }
 
-
         private function initializeManagers(): void {
             $this->managers = [
                 'hook' => new HookManager(),
@@ -65,14 +64,40 @@
                 'migration' => new MigrationManager(),
                 'router' => new Router()
             ];
+
+            // Регистрируем базовые пути шаблонов
+            $this->registerCoreTemplatePaths();
         }
 
         public function init(): void {
+            error_log("Core::init started. Memory: " . memory_get_usage() . " bytes");
+
             $this->initDatabase();
+            error_log("After database init. Memory: " . memory_get_usage() . " bytes");
+
+            // Добавляем отладку загрузки плагинов
+            error_log("Starting plugins load...");
             $this->managers['plugin']->loadPlugins();
+            error_log("After plugins load. Memory: " . memory_get_usage() . " bytes");
+
             $this->managers['migration']->runMigrations();
+            error_log("After migrations. Memory: " . memory_get_usage() . " bytes");
+
             $this->registerRoutes();
+            error_log("After routes. Memory: " . memory_get_usage() . " bytes");
+
             $this->managers['router']->dispatch();
+            error_log("Core::init completed. Memory: " . memory_get_usage() . " bytes");
+        }
+
+        private function registerCoreTemplatePaths(): void {
+            $templateManager = $this->getManager('template');
+
+            // Базовые пути core (низший приоритет)
+            $templateManager->addPath(APP_PATH . 'core/views/', 'core');
+            $templateManager->addPath(APP_PATH . 'core/views/layouts/', 'core');
+
+            error_log("Core template paths registered");
         }
 
         private function initDatabase(): void {
@@ -95,6 +120,11 @@
 
             // Тестовый маршрут
             $router->addRoute('GET', '/test', 'TestController@simple');
+
+            // маршруты для зависимостей
+            $router->addRoute('GET', '/admin/plugin/{name}', 'AdminController@pluginDetails');
+            $router->addRoute('POST', '/admin/plugins/activate-with-deps', 'AdminController@activatePluginWithDeps');
+            $router->addRoute('GET', '/admin/plugins/check-deps', 'AdminController@checkDependencies');
         }
 
         public function getRouter() {
