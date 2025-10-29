@@ -110,4 +110,72 @@ class AdminController extends BaseController {
     protected function getCurrentPage(): string {
         return 'admin';
     }
+
+    public function pluginDetails(string $pluginName): void {
+        $pluginManager = Core::getInstance()->getManager('plugin');
+        $plugin = $pluginManager->getPlugin($pluginName);
+
+        if (!$plugin) {
+            $this->setMessage("Plugin {$pluginName} not found", 'error');
+            $this->redirect('/admin');
+        }
+
+        $dependencyInfo = $pluginManager->getDependencyInfo($pluginName);
+        $dependents = $pluginManager->getDependentPlugins($pluginName);
+
+        $this->render('admin/plugin_details', [
+            'title' => "Plugin Details: {$pluginName}",
+            'plugin' => $plugin,
+            'dependency_info' => $dependencyInfo,
+            'dependents' => $dependents,
+            'is_active' => $pluginManager->isActive($pluginName)
+        ]);
+    }
+
+    public function activatePluginWithDeps(): void {
+        $pluginName = $_POST['plugin_name'] ?? '';
+
+        if (!$pluginName) {
+            $this->setMessage('Plugin name required', 'error');
+            $this->redirect('/admin');
+        }
+
+        $pluginManager = Core::getInstance()->getManager('plugin');
+        $results = $pluginManager->activatePluginWithDependencies($pluginName);
+
+        // Показываем результаты операции
+        foreach ($results['success'] as $message) {
+            $this->setMessage($message, 'success');
+        }
+
+        foreach ($results['errors'] as $message) {
+            $this->setMessage($message, 'error');
+        }
+
+        foreach ($results['warnings'] as $message) {
+            $this->setMessage($message, 'warning');
+        }
+
+        $this->redirect('/admin');
+    }
+
+    public function checkDependencies(): void {
+        $pluginName = $_GET['plugin_name'] ?? '';
+
+        if (!$pluginName) {
+            $this->json(['error' => 'Plugin name required']);
+            return;
+        }
+
+        $pluginManager = Core::getInstance()->getManager('plugin');
+        $plugin = $pluginManager->getPlugin($pluginName);
+
+        if (!$plugin) {
+            $this->json(['error' => 'Plugin not found']);
+            return;
+        }
+
+        $dependencyInfo = $pluginManager->getDependencyInfo($pluginName);
+        $this->json($dependencyInfo);
+    }
 }

@@ -6,10 +6,32 @@
         protected string $description = 'Базовый плагин';
         protected bool $initialized = false;
 
+        /**
+         * Зависимости плагина
+         * Формат: ['plugin_name' => 'version_constraint']
+         * Пример: ['csrfprotection' => '>=1.0.0', 'migrations' => '^2.1.0']
+         */
+        protected array $dependencies = [];
+
+        /**
+         * Конфликтующие плагины
+         * Формат: ['plugin_name' => 'reason']
+         */
+        protected array $conflicts = [];
+
+        /**
+         * Рекомендуемые плагины (необязательные зависимости)
+         */
+        protected array $recommends = [];
+
+        /**
+         * Заменяемые плагины (этот плагин заменяет указанные)
+         */
+        protected array $replaces = [];
+
+
         public function initialize(): void {
-            if ($this->initialized) {
-                return;
-            }
+            if ($this->initialized) return;
 
             $this->initialized = true;
             $this->onInitialize();
@@ -59,5 +81,119 @@
         protected function onInitialize(): void {
             // Базовая реализация - ничего не делает
             // Может быть переопределена в дочерних классах
+        }
+
+        /**
+         * Получить зависимости плагина
+         */
+        public function getDependencies(): array {
+            return $this->dependencies;
+        }
+
+        /**
+         * Получить конфликтующие плагины
+         */
+        public function getConflicts(): array {
+            return $this->conflicts;
+        }
+
+        /**
+         * Получить рекомендуемые плагины
+         */
+        public function getRecommends(): array {
+            return $this->recommends;
+        }
+
+        /**
+         * Получить заменяемые плагины
+         */
+        public function getReplaces(): array {
+            return $this->replaces;
+        }
+
+        /**
+         * Проверить, удовлетворяет ли версия требованию
+         */
+        public static function versionMatches(string $version, string $constraint): bool {
+            return self::compareVersions($version, $constraint);
+        }
+
+        /**
+         * Сравнение версий по семантическому версионированию
+         */
+        private static function compareVersions(string $version, string $constraint): bool {
+            // Упрощенная реализация - в реальной системе лучше использовать composer/semver
+            $version = self::normalizeVersion($version);
+            $constraint = self::normalizeVersion($constraint);
+
+            // Простые операторы
+            if (str_starts_with($constraint, '>=')) {
+                $required = substr($constraint, 2);
+                return version_compare($version, $required, '>=');
+            }
+
+            if (str_starts_with($constraint, '<=')) {
+                $required = substr($constraint, 2);
+                return version_compare($version, $required, '<=');
+            }
+
+            if (str_starts_with($constraint, '>')) {
+                $required = substr($constraint, 1);
+                return version_compare($version, $required, '>');
+            }
+
+            if (str_starts_with($constraint, '<')) {
+                $required = substr($constraint, 1);
+                return version_compare($version, $required, '<');
+            }
+
+            if (str_starts_with($constraint, '^')) {
+                // Совместимость по мажорной версии (^1.2.3 = >=1.2.3 <2.0.0)
+                $required = substr($constraint, 1);
+                $nextMajor = self::getNextMajorVersion($required);
+                return version_compare($version, $required, '>=') &&
+                    version_compare($version, $nextMajor, '<');
+            }
+
+            if (str_starts_with($constraint, '~')) {
+                // Совместимость по минорной версии (~1.2.3 = >=1.2.3 <1.3.0)
+                $required = substr($constraint, 1);
+                $nextMinor = self::getNextMinorVersion($required);
+                return version_compare($version, $required, '>=') &&
+                    version_compare($version, $nextMinor, '<');
+            }
+
+            // Точное совпадение
+            return $version === $constraint;
+        }
+
+        private static function normalizeVersion(string $version): string {
+            // Убираем 'v' из версии типа v1.0.0
+            if (str_starts_with($version, 'v')) {
+                $version = substr($version, 1);
+            }
+
+            // Добавляем .0 если версия неполная (1.0 -> 1.0.0)
+            $parts = explode('.', $version);
+            while (count($parts) < 3) {
+                $parts[] = '0';
+            }
+
+            return implode('.', $parts);
+        }
+
+        private static function getNextMajorVersion(string $version): string {
+            $parts = explode('.', self::normalizeVersion($version));
+            $parts[0] = (int)$parts[0] + 1;
+            $parts[1] = 0;
+            $parts[2] = 0;
+            return implode('.', $parts);
+        }
+
+        private static function getNextMinorVersion(string $version): string {
+            $parts = explode('.', self::normalizeVersion($version));
+            $parts[1] = (int)$parts[1] + 1;
+            $parts[2] = 0;
+            return implode('.', $parts);
         }
     }

@@ -11,14 +11,7 @@ class BaseController {
     }
 
     protected function render(string $view, array $data = []): void {
-        // Добавляем отладочную информацию
-        error_log("BaseController::render called with view: '{$view}' from controller: " . get_class($this));
-
-        // Защита от пустых имен view
-        if (empty($view)) {
-            error_log("ERROR: Empty view name in " . get_class($this) . ", using 'home' as fallback");
-            $view = 'home';
-        }
+        error_log("BaseController::render called with view: '{$view}'");
 
         try {
             // Добавляем базовые данные
@@ -28,23 +21,7 @@ class BaseController {
                 'layout' => $this->layout
             ]);
 
-            error_log("Data keys: " . implode(', ', array_keys($data)));
-
-            // Попытка рендера через плагин
-            if ($this->pluginName) {
-                $pluginView = "plugins/{$this->pluginName}/{$view}";
-                try {
-                    error_log("Attempting plugin view: '{$pluginView}'");
-                    echo $this->template->render($pluginView, $data);
-                    return;
-                } catch (Exception $e) {
-                    // Fallback to core template
-                    error_log("Plugin view not found: {$pluginView}, using core template. Error: " . $e->getMessage());
-                }
-            }
-
-            // Рендер через основной шаблон
-            error_log("Rendering core view: '{$view}'");
+            // Рендер через template manager (автоматически ищет в плагинах, затем в core)
             echo $this->template->render($view, $data);
 
         } catch (Exception $e) {

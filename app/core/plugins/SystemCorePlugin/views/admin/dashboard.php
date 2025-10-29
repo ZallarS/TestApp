@@ -3,8 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $title ?? 'Панель управления'; ?></title>
+    <title><?php echo htmlspecialchars($title ?? 'Панель управления'); ?></title>
     <style>
+        /* Базовые стили админки */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --info-color: #17a2b8;
+            --light-bg: #f8f9fa;
+            --border-color: #e9ecef;
+            --text-color: #2c3e50;
+            --text-muted: #6c757d;
+            --sidebar-width: 250px;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,35 +28,112 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            background: #f5f6fa;
+            color: var(--text-color);
+            line-height: 1.6;
         }
 
         .admin-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
+            display: flex;
+            min-height: 100vh;
         }
 
-        .admin-header {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
+        /* Сайдбар */
+        .admin-sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, var(--secondary-color), #34495e);
             color: white;
-            padding: 30px;
-            text-align: center;
+            padding: 0;
         }
 
-        .admin-header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.5em;
+            margin-bottom: 5px;
             font-weight: 300;
         }
 
-        .admin-content {
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 12px 25px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left-color: var(--primary-color);
+        }
+
+        .nav-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Основной контент */
+        .admin-main {
+            flex: 1;
             padding: 30px;
+            overflow-x: auto;
+        }
+
+        .admin-header {
+            background: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+
+        .admin-header h1 {
+            color: var(--secondary-color);
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .admin-header p {
+            color: var(--text-muted);
+            font-size: 1.1em;
+        }
+
+        /* Сообщения */
+        .message {
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            font-weight: 500;
+            border-left: 4px solid transparent;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border-left-color: var(--success-color);
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left-color: var(--danger-color);
+        }
+
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left-color: var(--warning-color);
         }
 
         /* Статистика */
@@ -53,209 +145,77 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            background: white;
             padding: 25px;
             border-radius: 12px;
             text-align: center;
-            border-left: 4px solid #3498db;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid var(--primary-color);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
         }
 
         .stat-card.system {
-            border-left-color: #e74c3c;
+            border-left-color: var(--danger-color);
         }
 
         .stat-card.user {
-            border-left-color: #2ecc71;
+            border-left-color: var(--success-color);
         }
 
         .stat-card.active {
-            border-left-color: #f39c12;
+            border-left-color: var(--warning-color);
         }
 
         .stat-number {
             font-size: 2.5em;
             font-weight: bold;
-            color: #2c3e50;
+            color: var(--secondary-color);
             display: block;
             margin-bottom: 5px;
         }
 
-        /* Сообщения */
-        .message {
-            padding: 15px 20px;
-            margin: 20px 0;
-            border-radius: 8px;
-            font-weight: 500;
-        }
-
-        .success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        /* Отладочная информация */
-        .debug-panel {
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-
-        .debug-header {
-            background: #6c757d;
-            color: white;
-            padding: 12px 20px;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .debug-content {
-            padding: 15px 20px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
+        /* Таблицы */
+        .table-container {
             background: white;
-        }
-
-        /* Секции */
-        .section {
-            margin: 40px 0;
-        }
-
-        .section-header {
-            font-size: 1.5em;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #ecf0f1;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-header::before {
-            content: "▶";
-            color: #3498db;
-            font-size: 0.8em;
-        }
-
-        /* Карточки плагинов */
-        .plugins-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
             margin-bottom: 30px;
         }
 
-        .plugin-card {
-            background: white;
-            border: 1px solid #e1e8ed;
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            position: relative;
+        .table-header {
+            background: var(--light-bg);
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .plugin-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            border-color: #3498db;
+        .table-header h2 {
+            color: var(--secondary-color);
+            margin: 0;
         }
 
-        .plugin-card.system {
-            border-left: 4px solid #e74c3c;
-        }
-
-        .plugin-card.active {
-            border-left: 4px solid #2ecc71;
-        }
-
-        .plugin-card.inactive {
-            border-left: 4px solid #95a5a6;
-        }
-
-        .plugin-header {
-            display: flex;
-            justify-content: between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-        }
-
-        .plugin-name {
-            font-size: 1.2em;
-            font-weight: bold;
-            color: #2c3e50;
-            flex-grow: 1;
-        }
-
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 0.7em;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .status-system {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .status-active {
-            background: #2ecc71;
-            color: white;
-        }
-
-        .status-inactive {
-            background: #95a5a6;
-            color: white;
-        }
-
-        .plugin-info {
-            color: #7f8c8d;
-            font-size: 0.9em;
-            line-height: 1.4;
-        }
-
-        .plugin-info strong {
-            color: #2c3e50;
-        }
-
-        /* Таблицы */
         .plugins-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .plugins-table th {
-            background: linear-gradient(135deg, #34495e, #2c3e50);
-            color: white;
-            padding: 15px;
+            background: var(--light-bg);
+            padding: 15px 20px;
             text-align: left;
             font-weight: 600;
+            color: var(--secondary-color);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .plugins-table td {
-            padding: 15px;
-            border-bottom: 1px solid #ecf0f1;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .plugins-table tr:last-child td {
@@ -263,20 +223,31 @@
         }
 
         .plugins-table tr:hover {
-            background: #f8f9fa;
+            background: var(--light-bg);
         }
 
-        .system-plugin {
-            background: #fff5f5;
+        /* Бейджи статусов */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: uppercase;
         }
 
-        .system-badge {
-            background: #e74c3c;
+        .status-active {
+            background: var(--success-color);
             color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.7em;
-            margin-left: 8px;
+        }
+
+        .status-inactive {
+            background: var(--text-muted);
+            color: white;
+        }
+
+        .status-system {
+            background: var(--danger-color);
+            color: white;
         }
 
         /* Кнопки */
@@ -293,8 +264,13 @@
             margin: 2px;
         }
 
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8em;
+        }
+
         .btn-primary {
-            background: #3498db;
+            background: var(--primary-color);
             color: white;
         }
 
@@ -303,18 +279,8 @@
             transform: translateY(-1px);
         }
 
-        .btn-danger {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c0392b;
-            transform: translateY(-1px);
-        }
-
         .btn-success {
-            background: #2ecc71;
+            background: var(--success-color);
             color: white;
         }
 
@@ -324,7 +290,7 @@
         }
 
         .btn-warning {
-            background: #f39c12;
+            background: var(--warning-color);
             color: white;
         }
 
@@ -333,39 +299,93 @@
             transform: translateY(-1px);
         }
 
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+            transform: translateY(-1px);
+        }
+
         /* Формы */
         form {
             display: inline;
         }
 
+        /* Виджеты */
+        .widgets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .widget {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .widget-header h3 {
+            color: var(--secondary-color);
+            margin: 0;
+        }
+
         /* Адаптивность */
+        @media (max-width: 1024px) {
+            .admin-container {
+                flex-direction: column;
+            }
+
+            .admin-sidebar {
+                width: 100%;
+                order: 2;
+            }
+
+            .sidebar-nav {
+                display: flex;
+                overflow-x: auto;
+                padding: 0;
+            }
+
+            .nav-item {
+                white-space: nowrap;
+                border-left: none;
+                border-bottom: 3px solid transparent;
+            }
+
+            .nav-item:hover, .nav-item.active {
+                border-left: none;
+                border-bottom-color: var(--primary-color);
+            }
+        }
+
         @media (max-width: 768px) {
+            .admin-main {
+                padding: 20px;
+            }
+
             .stats-grid {
                 grid-template-columns: 1fr;
             }
 
-            .plugins-grid {
+            .widgets-grid {
                 grid-template-columns: 1fr;
             }
 
             .plugins-table {
                 display: block;
                 overflow-x: auto;
-            }
-
-            .admin-content {
-                padding: 15px;
-            }
-
-            .plugin-actions {
-                display: flex;
-                flex-direction: column;
-                gap: 5px;
-            }
-
-            .btn {
-                width: 100%;
-                text-align: center;
             }
         }
 
@@ -378,241 +398,257 @@
         .fade-in {
             animation: fadeIn 0.5s ease-out;
         }
-
-        /* Навигация */
-        .admin-nav {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #ecf0f1;
-        }
-
-        .nav-link {
-            color: #3498db;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .nav-link:hover {
-            color: #2980b9;
-            text-decoration: underline;
-        }
     </style>
 </head>
 <body>
-<div class="admin-container fade-in">
-    <div class="admin-header">
-        <h1>🛠️ Панель управления системой</h1>
-        <p>Обзор системы и управление плагинами</p>
+<div class="admin-container">
+    <!-- Сайдбар -->
+    <div class="admin-sidebar">
+        <div class="sidebar-header">
+            <h1>⚙️ Панель управления</h1>
+            <p>Система плагинов</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/admin" class="nav-item active">
+                <i>📊</i> Обзор системы
+            </a>
+            <a href="/admin/plugins" class="nav-item">
+                <i>🔌</i> Управление плагинами
+            </a>
+            <a href="/system/health" class="nav-item">
+                <i>❤️</i> Состояние системы
+            </a>
+            <a href="/system/info" class="nav-item">
+                <i>📋</i> Информация
+            </a>
+            <a href="/" class="nav-item">
+                <i>🏠</i> На главную
+            </a>
+        </nav>
+
+        <!-- Виджеты плагинов в сайдбаре -->
+        <?php
+        try {
+            $hookManager = Core::getInstance()->getManager('hook');
+            if ($hookManager && $hookManager->hasAction('admin_dashboard_sidebar')) {
+                $hookManager->doAction('admin_dashboard_sidebar');
+            }
+        } catch (Exception $e) {
+            error_log("Hook error in admin sidebar: " . $e->getMessage());
+        }
+        ?>
     </div>
 
-    <div class="admin-content">
+    <!-- Основной контент -->
+    <div class="admin-main">
+        <!-- Заголовок -->
+        <div class="admin-header fade-in">
+            <h1>🛠️ Панель управления системой</h1>
+            <p>Обзор системы и управление плагинами</p>
+        </div>
+
         <!-- Сообщения -->
         <?php if (isset($_SESSION['success_message'])): ?>
-            <div class="message success">✅ <?php echo $_SESSION['success_message']; unset($_SESSION['success_message']); ?></div>
+            <div class="message success fade-in">
+                ✅ <?php echo htmlspecialchars($_SESSION['success_message']); unset($_SESSION['success_message']); ?>
+            </div>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['error_message'])): ?>
-            <div class="message error">❌ <?php echo $_SESSION['error_message']; unset($_SESSION['error_message']); ?></div>
+            <div class="message error fade-in">
+                ❌ <?php echo htmlspecialchars($_SESSION['error_message']); unset($_SESSION['error_message']); ?>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['warning_message'])): ?>
+            <div class="message warning fade-in">
+                ⚠️ <?php echo htmlspecialchars($_SESSION['warning_message']); unset($_SESSION['warning_message']); ?>
+            </div>
         <?php endif; ?>
 
         <!-- Статистика системы -->
         <?php if (isset($plugins_stats)): ?>
             <div class="stats-grid">
-                <div class="stat-card">
+                <div class="stat-card fade-in">
                     <span class="stat-number"><?php echo $plugins_stats['total_count']; ?></span>
                     <div>Всего плагинов</div>
                 </div>
-                <div class="stat-card active">
+                <div class="stat-card active fade-in">
                     <span class="stat-number"><?php echo $plugins_stats['active_count']; ?></span>
                     <div>Активных плагинов</div>
                 </div>
-                <div class="stat-card system">
+                <div class="stat-card system fade-in">
                     <span class="stat-number"><?php echo $plugins_stats['system_count']; ?></span>
                     <div>Системных плагинов</div>
                 </div>
-                <div class="stat-card user">
+                <div class="stat-card user fade-in">
                     <span class="stat-number"><?php echo $plugins_stats['user_count']; ?></span>
                     <div>Пользовательских плагинов</div>
                 </div>
             </div>
         <?php endif; ?>
 
-        <!-- Отладочная информация -->
-        <div class="debug-panel">
-            <details>
-                <summary class="debug-header">
-                    🔍 Отладочная информация (плагины: <?php echo $plugins_stats['total_count'] ?? 0; ?>)
-                </summary>
-                <div class="debug-content">
-                        <pre><?php
-                            echo "Системные: " . ($plugins_stats['system_count'] ?? 0) . "\n";
-                            echo "Пользовательские: " . ($plugins_stats['user_count'] ?? 0) . "\n";
-                            echo "Активные: " . ($plugins_stats['active_count'] ?? 0) . "\n";
-                            echo "\nДетали:\n";
-                            if (isset($plugins_stats['all_plugins'])) {
-                                foreach ($plugins_stats['all_plugins'] as $name => $plugin) {
-                                    $status = Core::getInstance()->getPluginManager()->isActive($name) ? 'активен' : 'неактивен';
-                                    $type = Core::getInstance()->isSystemPlugin($name) ? 'системный' : 'пользовательский';
-                                    echo " - {$plugin->getName()} (v{$plugin->getVersion()})\n";
-                                    echo "   Тип: {$type}, Статус: {$status}\n";
-                                    echo "   Описание: {$plugin->getDescription()}\n\n";
-                                }
-                            }
-                            ?></pre>
+        <!-- Виджеты -->
+        <div class="widgets-grid">
+            <div class="widget fade-in">
+                <div class="widget-header">
+                    <h3>🚀 Быстрые действия</h3>
                 </div>
-            </details>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <a href="/admin/plugins" class="btn btn-primary">Управление плагинами</a>
+                    <a href="/system/health" class="btn btn-success">Проверить систему</a>
+                    <a href="/system/info" class="btn btn-primary">Информация о системе</a>
+                </div>
+            </div>
+
+            <div class="widget fade-in">
+                <div class="widget-header">
+                    <h3>📈 Статистика системы</h3>
+                </div>
+                <?php if (isset($system_info)): ?>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Версия PHP:</span>
+                            <strong style="color: var(--success-color);"><?php echo htmlspecialchars($system_info['php_version'] ?? 'Неизвестно'); ?></strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Сервер:</span>
+                            <strong style="color: var(--primary-color);"><?php echo htmlspecialchars($system_info['server_software'] ?? 'Неизвестно'); ?></strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Версия системы:</span>
+                            <strong style="color: var(--warning-color);"><?php echo htmlspecialchars($system_info['version'] ?? '1.0.0'); ?></strong>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
 
         <!-- Активные плагины -->
         <?php if (isset($plugins_stats['active_plugins']) && !empty($plugins_stats['active_plugins'])): ?>
-            <div class="section">
-                <h2 class="section-header">🚀 Активные плагины</h2>
-                <div class="plugins-grid">
-                    <?php foreach ($plugins_stats['active_plugins'] as $name => $plugin): ?>
-                        <div class="plugin-card <?php echo Core::getInstance()->isSystemPlugin($name) ? 'system' : 'active'; ?>">
-                            <div class="plugin-header">
-                                <div class="plugin-name"><?php echo $plugin->getName(); ?></div>
-                                <?php if (Core::getInstance()->isSystemPlugin($name)): ?>
-                                    <span class="status-badge status-system">Системный</span>
-                                <?php else: ?>
-                                    <span class="status-badge status-active">Активен</span>
-                                <?php endif; ?>
-                            </div>
-                            <div class="plugin-info">
-                                <p><strong>Версия:</strong> <?php echo $plugin->getVersion(); ?></p>
-                                <p><strong>Описание:</strong> <?php echo $plugin->getDescription(); ?></p>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
+            <div class="table-container fade-in">
+                <div class="table-header">
+                    <h2>🎯 Активные плагины</h2>
                 </div>
+                <table class="plugins-table">
+                    <thead>
+                    <tr>
+                        <th>Название</th>
+                        <th>Версия</th>
+                        <th>Описание</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($plugins_stats['active_plugins'] as $name => $plugin): ?>
+                        <tr>
+                            <td>
+                                <strong><?php echo htmlspecialchars($plugin->getName()); ?></strong>
+                                <?php if (Core::getInstance()->isSystemPlugin($name)): ?>
+                                    <span class="status-badge status-system" style="margin-left: 8px;">Системный</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><?php echo htmlspecialchars($plugin->getVersion()); ?></td>
+                            <td><?php echo htmlspecialchars($plugin->getDescription()); ?></td>
+                            <td>
+                                <span class="status-badge status-active">Активен</span>
+                            </td>
+                            <td>
+                                <?php if (!Core::getInstance()->isSystemPlugin($name)): ?>
+                                    <form method="POST" action="/admin/plugins/toggle" style="display: inline;">
+                                        <input type="hidden" name="plugin_name" value="<?php echo htmlspecialchars($name); ?>">
+                                        <input type="hidden" name="action" value="deactivate">
+                                        <button type="submit" class="btn btn-warning btn-sm">Деактивировать</button>
+                                    </form>
+                                <?php else: ?>
+                                    <span style="color: var(--text-muted); font-size: 0.9em;">Системный плагин</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
         <?php endif; ?>
 
-        <!-- Все плагины с управлением -->
-        <div class="section">
-            <h2 class="section-header">⚙️ Управление плагинами</h2>
-
-            <!-- Системные плагины -->
-            <?php if (isset($plugins_stats['system_plugins']) && !empty($plugins_stats['system_plugins'])): ?>
-                <h3 style="color: #e74c3c; margin: 25px 0 15px 0;">🛡️ Системные плагины</h3>
+        <!-- Все плагины -->
+        <?php if (isset($plugins_stats['all_plugins']) && !empty($plugins_stats['all_plugins'])): ?>
+            <div class="table-container fade-in">
+                <div class="table-header">
+                    <h2>🔌 Все плагины</h2>
+                </div>
                 <table class="plugins-table">
                     <thead>
                     <tr>
                         <th>Название</th>
                         <th>Версия</th>
                         <th>Описание</th>
+                        <th>Тип</th>
                         <th>Статус</th>
-                        <th>Действия</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <?php foreach ($plugins_stats['system_plugins'] as $plugin): ?>
-                        <tr class="system-plugin">
-                            <td>
-                                <strong><?php echo $plugin->getName(); ?></strong>
-                                <span class="system-badge">Системный</span>
-                            </td>
-                            <td><?php echo $plugin->getVersion(); ?></td>
-                            <td><?php echo $plugin->getDescription(); ?></td>
-                            <td>
-                                <span style="color: #2ecc71; font-weight: bold;">✅ Всегда активен</span>
-                            </td>
-                            <td>
-                                <em style="color: #7f8c8d;">Действия недоступны</em>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
-            <?php else: ?>
-                <p style="color: #7f8c8d; text-align: center; padding: 20px;">Системные плагины не найдены</p>
-            <?php endif; ?>
-
-            <!-- Пользовательские плагины -->
-            <?php if (isset($plugins_stats['user_plugins']) && !empty($plugins_stats['user_plugins'])): ?>
-                <h3 style="color: #2ecc71; margin: 25px 0 15px 0;">👤 Пользовательские плагины</h3>
-                <table class="plugins-table">
-                    <thead>
-                    <tr>
-                        <th>Название</th>
-                        <th>Версия</th>
-                        <th>Описание</th>
-                        <th>Статус</th>
-                        <th>Действия</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <?php foreach ($plugins_stats['user_plugins'] as $name => $plugin): ?>
+                    <?php foreach ($plugins_stats['all_plugins'] as $name => $plugin): ?>
                         <tr>
-                            <td><strong><?php echo $plugin->getName(); ?></strong></td>
-                            <td><?php echo $plugin->getVersion(); ?></td>
-                            <td><?php echo $plugin->getDescription(); ?></td>
+                            <td>
+                                <strong><?php echo htmlspecialchars($plugin->getName()); ?></strong>
+                            </td>
+                            <td><?php echo htmlspecialchars($plugin->getVersion()); ?></td>
+                            <td><?php echo htmlspecialchars($plugin->getDescription()); ?></td>
+                            <td>
+                                <?php if (Core::getInstance()->isSystemPlugin($name)): ?>
+                                    <span style="color: var(--danger-color);">Системный</span>
+                                <?php else: ?>
+                                    <span style="color: var(--success-color);">Пользовательский</span>
+                                <?php endif; ?>
+                            </td>
                             <td>
                                 <?php if (Core::getInstance()->getPluginManager()->isActive($name)): ?>
-                                    <span style="color: #2ecc71; font-weight: bold;">✅ Активен</span>
+                                    <span class="status-badge status-active">Активен</span>
                                 <?php else: ?>
-                                    <span style="color: #e74c3c;">❌ Неактивен</span>
+                                    <span class="status-badge status-inactive">Неактивен</span>
                                 <?php endif; ?>
-                            </td>
-                            <td class="plugin-actions">
-                                <form method="POST" action="/admin/plugins/toggle" style="display: inline;">
-                                    <input type="hidden" name="plugin_name" value="<?php echo $name; ?>">
-                                    <input type="hidden" name="action" value="deactivate">
-                                    <button type="submit" class="btn btn-warning">⏸️ Деактивировать</button>
-                                </form>
-                                <?php else: ?>
-                                    <form method="POST" action="/admin/plugins/toggle" style="display: inline;">
-                                        <input type="hidden" name="plugin_name" value="<?php echo $name; ?>">
-                                        <input type="hidden" name="action" value="activate">
-                                        <button type="submit" class="btn btn-success">▶️ Активировать</button>
-                                    </form>
-                                <?php endif; ?>
-
-                                <form method="POST" action="/admin/plugins/install">
-                                    <input type="hidden" name="plugin_name" value="<?php echo $name; ?>">
-                                    <button type="submit" class="btn btn-primary">📦 Установить</button>
-                                </form>
-
-                                <form method="POST" action="/admin/plugins/uninstall">
-                                    <input type="hidden" name="plugin_name" value="<?php echo $name; ?>">
-                                    <button type="submit" class="btn btn-danger">🗑️ Удалить</button>
-                                </form>
                             </td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
                 </table>
-            <?php else: ?>
-                <p style="color: #7f8c8d; text-align: center; padding: 20px;">Пользовательские плагины не найдены</p>
-            <?php endif; ?>
-        </div>
-
-        <!-- Навигация -->
-        <div class="admin-nav">
-            <a href="/" class="nav-link">← Вернуться на главную страницу</a>
-        </div>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
 
 <script>
-    // Добавляем анимацию появления элементов при загрузке
+    // Анимации для админки
     document.addEventListener('DOMContentLoaded', function() {
-        const elements = document.querySelectorAll('.stat-card, .plugin-card, .plugins-table');
-        elements.forEach((element, index) => {
-            element.style.animationDelay = (index * 0.1) + 's';
-            element.classList.add('fade-in');
+        // Анимация карточек статистики
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach((card, index) => {
+            card.style.animationDelay = (index * 0.1) + 's';
         });
-    });
 
-    // Подсветка новых сообщений
-    const messages = document.querySelectorAll('.message');
-    messages.forEach(message => {
-        setTimeout(() => {
-            message.style.opacity = '1';
-            message.style.transform = 'translateY(0)';
-        }, 100);
+        // Анимация виджетов
+        const widgets = document.querySelectorAll('.widget');
+        widgets.forEach((widget, index) => {
+            widget.style.animationDelay = (index * 0.15 + 0.3) + 's';
+        });
+
+        // Анимация таблиц
+        const tables = document.querySelectorAll('.table-container');
+        tables.forEach((table, index) => {
+            table.style.animationDelay = (index * 0.2 + 0.6) + 's';
+        });
+
+        // Подсветка активного пункта меню
+        const currentPage = window.location.pathname;
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            if (item.getAttribute('href') === currentPage) {
+                item.classList.add('active');
+            }
+        });
     });
 </script>
 </body>
