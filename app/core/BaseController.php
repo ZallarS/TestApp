@@ -1,52 +1,105 @@
 <?php
+// /var/www/testsystem/app/core/BaseController.php
 
-    abstract class BaseController {
-        protected TemplateManager $template;
-        protected ?string $pluginName = null;
-        protected ?string $layout = null;
+class BaseController {
+    protected TemplateManager $template;
+    protected ?string $pluginName = null;
+    protected ?string $layout = null;
 
-        public function __construct() {
-            $this->template = Core::getInstance()->getManager('template');
+    public function __construct() {
+        $this->template = Core::getInstance()->getManager('template');
+    }
+
+    protected function render(string $view, array $data = []): void {
+        // Добавляем отладочную информацию
+        error_log("BaseController::render called with view: '{$view}' from controller: " . get_class($this));
+
+        // Защита от пустых имен view
+        if (empty($view)) {
+            error_log("ERROR: Empty view name in " . get_class($this) . ", using 'home' as fallback");
+            $view = 'home';
         }
 
-        protected function render(string $view, array $data = []): void {
+        try {
+            // Добавляем базовые данные
             $data = array_merge($data, [
                 'current_page' => $this->getCurrentPage(),
-                'system_info' => $this->getSystemInfo(),
+                'system_info' => Core::getInstance()->getSystemInfo(),
                 'layout' => $this->layout
             ]);
 
+            error_log("Data keys: " . implode(', ', array_keys($data)));
+
+            // Попытка рендера через плагин
             if ($this->pluginName) {
                 $pluginView = "plugins/{$this->pluginName}/{$view}";
                 try {
+                    error_log("Attempting plugin view: '{$pluginView}'");
                     echo $this->template->render($pluginView, $data);
                     return;
                 } catch (Exception $e) {
                     // Fallback to core template
+                    error_log("Plugin view not found: {$pluginView}, using core template. Error: " . $e->getMessage());
                 }
             }
 
+            // Рендер через основной шаблон
+            error_log("Rendering core view: '{$view}'");
             echo $this->template->render($view, $data);
-        }
 
-        protected function json(array $data): void {
-            header('Content-Type: application/json');
-            echo json_encode($data, JSON_PRETTY_PRINT);
-            exit;
-        }
-
-        protected function redirect(string $url): void {
-            header("Location: {$url}");
-            exit;
-        }
-
-        protected function setMessage(string $message, string $type = 'success'): void {
-            $_SESSION["{$type}_message"] = $message;
-        }
-
-        abstract protected function getCurrentPage(): string;
-
-        protected function getSystemInfo(): array {
-            return Core::getInstance()->getSystemInfo();
+        } catch (Exception $e) {
+            error_log("Render error in " . get_class($this) . ": " . $e->getMessage());
+            $this->handleError($e);
         }
     }
+
+    protected function json(array $data): void {
+        header('Content-Type: application/json');
+        echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    protected function redirect(string $url): void {
+        header("Location: {$url}");
+        exit;
+    }
+
+    protected function setMessage(string $message, string $type = 'success'): void {
+        $_SESSION["{$type}_message"] = $message;
+    }
+
+    protected function handleError(Exception $e): void {
+        http_response_code(500);
+        echo "<h1>Ошибка приложения</h1>";
+        echo "<p><strong>Ошибка:</strong> " . htmlspecialchars($e->getMessage()) . "</p>";
+
+        // Только в режиме отладки показываем детали
+        if (defined('DEBUG') && DEBUG) {
+            echo "<h2>Детали ошибки:</h2>";
+            echo "<pre>" . htmlspecialchars($e->getTraceAsString()) . "</pre>";
+        }
+
+        // Логируем для отладки
+        error_log("Controller error: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+    }
+
+    public function setPluginName(string $name): void {
+        $this->pluginName = $name;
+    }
+
+    public function setLayout($layoutName): void {
+        $this->layout = $layoutName;
+        error_log("Layout set to: " . var_export($layoutName, true));
+    }
+
+    protected function getCurrentPage(): string {
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+
+        if (strpos($uri, '/admin') !== false) return 'admin';
+        if (strpos($uri, '/system') !== false) return 'system';
+        if ($uri === '/' || $uri === '/index.php') return 'home';
+
+        return 'other';
+    }
+}

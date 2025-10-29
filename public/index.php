@@ -1,12 +1,14 @@
 <?php
 
-    // /var/www/testsystem/public/index.php
+
 
     // Увеличиваем лимит памяти для отладки
 ini_set('memory_limit', '256M');
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
+
 
 
     // Определяем корневую директорию проекта
