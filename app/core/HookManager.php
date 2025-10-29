@@ -5,6 +5,7 @@ class HookManager {
     private array $actions = [];
     private array $filters = [];
     private array $priorities = [];
+    private array $dynamicHooks = [];
 
     /**
      * Добавляет действие (хук)
@@ -12,35 +13,81 @@ class HookManager {
     public function addAction(string $hookName, callable $callback, int $priority = 10): void {
         $this->addHook('actions', $hookName, $callback, $priority);
     }
-
     /**
      * Добавляет фильтр
      */
     public function addFilter(string $hookName, callable $callback, int $priority = 10): void {
         $this->addHook('filters', $hookName, $callback, $priority);
     }
+    /**
+     * Регистрирует новый динамический хук (точку расширения)
+     */
+    public function registerHook(string $hookName, string $type = 'action', string $description = ''): void {
+        $this->dynamicHooks[$hookName] = [
+            'type' => $type,
+            'description' => $description,
+            'registered_by' => $this->getCallerPlugin(),
+            'timestamp' => time()
+        ];
 
+        error_log("Dynamic hook registered: {$hookName} ({$type}) by {$this->getCallerPlugin()}");
+    }
     /**
      * Выполняет действие (хук)
      */
     public function doAction(string $hookName, ...$args): void {
+        // Автоматически регистрируем хук при первом использовании, если он еще не зарегистрирован
+        if (!$this->hasAction($hookName) && !isset($this->dynamicHooks[$hookName])) {
+            $this->registerHook($hookName, 'action', 'Auto-registered on first use');
+        }
+
         $this->executeHook('actions', $hookName, $args);
     }
-
     /**
      * Применяет фильтр к значению
      */
     public function applyFilters(string $hookName, $value, ...$args) {
+        // Автоматически регистрируем хук при первом использовании
+        if (!$this->hasFilter($hookName) && !isset($this->dynamicHooks[$hookName])) {
+            $this->registerHook($hookName, 'filter', 'Auto-registered on first use');
+        }
+
         return $this->executeHook('filters', $hookName, $args, $value);
     }
-
+    /**
+     * Определяет, какой плагин регистрирует хук
+     */
+    private function getCallerPlugin(): string {
+        // Упрощенная версия - возвращаем 'system' для системных вызовов
+        // Плагины должны явно регистрировать хуки через hooks.json
+        return 'system';
+    }
     /**
      * Проверяет, есть ли зарегистрированные обработчики для хука
      */
     public function hasAction(string $hookName): bool {
         return !empty($this->actions[$hookName]);
     }
+    /**
+     * Получает информацию о всех зарегистрированных хуках
+     */
+    public function getHooksInfo(): array {
+        return [
+            'actions' => array_keys($this->actions),
+            'filters' => array_keys($this->filters),
+            'dynamic_hooks' => $this->dynamicHooks,
+            'total_actions' => count($this->actions),
+            'total_filters' => count($this->filters),
+            'total_dynamic' => count($this->dynamicHooks)
+        ];
+    }
 
+    /**
+     * Проверяет, зарегистрирован ли хук (включая динамические)
+     */
+    public function hookExists(string $hookName): bool {
+        return $this->hasAction($hookName) || $this->hasFilter($hookName) || isset($this->dynamicHooks[$hookName]);
+    }
     /**
      * Проверяет, есть ли зарегистрированные фильтры для хука
      */
@@ -96,9 +143,8 @@ class HookManager {
             sort($this->priorities);
         }
 
-        error_log("Hook added: {$type} '{$hookName}' with priority {$priority}");
+        error_log("Hook added: {$type} '{$hookName}' with priority {$priority} by {$this->getCallerPlugin()}");
     }
-
     /**
      * Внутренний метод для выполнения хука
      */
@@ -129,6 +175,7 @@ class HookManager {
                     }
                 } catch (Exception $e) {
                     error_log("Error executing hook '{$hookName}': " . $e->getMessage());
+                    error_log("Stack trace: " . $e->getTraceAsString());
                     // Продолжаем выполнение других обработчиков
                 }
             }
