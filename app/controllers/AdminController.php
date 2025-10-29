@@ -16,7 +16,40 @@ class AdminController extends BaseController {
             'system_info' => $this->getSystemInfo()
         ]);
     }
+    public function hooksManager(): void {
+        $hookManager = Core::getInstance()->getManager('hook');
+        $hooksInfo = $hookManager->getHooksInfo();
 
+        $this->render('admin/hooks_manager', [
+            'title' => 'Управление хуками системы',
+            'hooks_info' => $hooksInfo
+        ]);
+    }
+
+    public function hookDetails(string $hookName): void {
+        $hookManager = Core::getInstance()->getManager('hook');
+        $hooksInfo = $hookManager->getHooksInfo();
+
+        $hookDetails = [
+            'name' => $hookName,
+            'type' => $hooksInfo['dynamic_hooks'][$hookName]['type'] ?? 'unknown',
+            'description' => $hooksInfo['dynamic_hooks'][$hookName]['description'] ?? '',
+            'registered_by' => $hooksInfo['dynamic_hooks'][$hookName]['registered_by'] ?? 'unknown',
+            'handlers' => []
+        ];
+
+        // Получаем обработчики для этого хука
+        if ($hookDetails['type'] === 'action' && isset($hooksInfo['actions'][$hookName])) {
+            $hookDetails['handlers'] = $hooksInfo['actions'][$hookName];
+        } elseif ($hookDetails['type'] === 'filter' && isset($hooksInfo['filters'][$hookName])) {
+            $hookDetails['handlers'] = $hooksInfo['filters'][$hookName];
+        }
+
+        $this->render('admin/hook_details', [
+            'title' => "Детали хука: {$hookName}",
+            'hook' => $hookDetails
+        ]);
+    }
     public function togglePlugin(): void {
         $pluginName = $_POST['plugin_name'] ?? '';
         $action = $_POST['action'] ?? '';

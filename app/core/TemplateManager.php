@@ -9,11 +9,11 @@ class TemplateManager {
 
     // Константы класса
     private const MAX_RENDER_DEPTH = 10;
-    private const MAX_DATA_SIZE = 1000000; // 1MB максимум
-    private const MAX_TEMPLATE_DATA_SIZE = 2000000; // 2MB для стилей
 
     public function __construct() {
-        $this->addPath(APP_PATH . 'views/', 'core');
+        // Регистрируем базовые пути
+        $this->addPath(APP_PATH . 'core/views/', 'core');
+        $this->addPath(APP_PATH . 'core/views/layouts/', 'core');
     }
 
     public function render(string $template, array $data = []): string {
@@ -25,7 +25,7 @@ class TemplateManager {
         $this->renderDepth++;
 
         try {
-            error_log("TemplateManager::render called with template: '{$template}', depth: {$this->renderDepth}");
+            error_log("TemplateManager::render called with template: '{$template}'");
 
             // Защита от пустых шаблонов
             if (empty($template)) {
@@ -79,10 +79,7 @@ class TemplateManager {
             throw new Exception("Template file not found: {$path}");
         }
 
-        // Ограничиваем объем данных, передаваемых в шаблон
-        $safeData = $this->prepareTemplateData($data);
-
-        extract($safeData, EXTR_SKIP);
+        extract($data, EXTR_SKIP);
 
         ob_start();
         try {
@@ -93,53 +90,6 @@ class TemplateManager {
         }
 
         return ob_get_clean();
-    }
-
-    /**
-     * Подготавливает данные для шаблона, ограничивая объем
-     */
-    private function prepareTemplateData(array $data): array {
-        $safeData = [];
-        $totalSize = 0;
-
-        foreach ($data as $key => $value) {
-            $valueSize = $this->getValueSize($value);
-
-            if ($totalSize + $valueSize > self::MAX_TEMPLATE_DATA_SIZE) {
-                error_log("WARNING: Template data too large, skipping key: {$key}");
-                continue;
-            }
-
-            $safeData[$key] = $value;
-            $totalSize += $valueSize;
-        }
-
-        error_log("Template data size: {$totalSize} bytes");
-        return $safeData;
-    }
-
-    /**
-     * Оценивает размер данных в байтах
-     */
-    private function getValueSize($value): int {
-        if (is_scalar($value)) {
-            return strlen((string)$value);
-        }
-
-        if (is_array($value)) {
-            $size = 0;
-            foreach ($value as $item) {
-                $size += $this->getValueSize($item);
-            }
-            return $size;
-        }
-
-        if (is_object($value)) {
-            // Для объектов считаем только размер свойств
-            return strlen(serialize($value));
-        }
-
-        return 0;
     }
 
     private function resolveTemplatePath(string $template): string {
@@ -157,7 +107,18 @@ class TemplateManager {
 
         // 2. Затем в основных путях
         foreach ($this->paths as $pathInfo) {
-            $fullPath = $pathInfo['path'] . $template . '.php';
+            // Убедимся, что $pathInfo - массив
+            if (is_array($pathInfo)) {
+                $path = $pathInfo['path'] ?? '';
+            } else {
+                $path = $pathInfo;
+            }
+
+            if (empty($path)) {
+                continue;
+            }
+
+            $fullPath = $path . $template . '.php';
             error_log("Checking core path: '{$fullPath}'");
             if (file_exists($fullPath)) {
                 error_log("Found in core path: '{$fullPath}'");
@@ -179,17 +140,42 @@ class TemplateManager {
             }
         }
 
-        throw new Exception("Template not found: '{$template}'");
+        $searchedPaths = array_merge(
+            $this->pluginPaths,
+            array_map(fn($p) => is_array($p) ? $p['path'] : $p, $this->paths),
+            $fallbackPaths
+        );
+
+        throw new Exception("Template not found: '{$template}'. Searched in: " . implode(', ', $searchedPaths));
     }
 
     public function addPath(string $path, string $context = 'core'): void {
         $normalizedPath = rtrim($path, '/') . '/';
 
         if ($context === 'plugin') {
-            // Пути плагинов имеют высший приоритет
-            $this->pluginPaths[] = $normalizedPath;
+            // Проверяем, нет ли уже этого пути в pluginPaths
+            if (!in_array($normalizedPath, $this->pluginPaths)) {
+                $this->pluginPaths[] = $normalizedPath;
+                error_log("Added plugin template path: '{$normalizedPath}'");
+            }
         } else {
-            $this->paths[] = $normalizedPath;
+            // Для core путей сохраняем как массив для обратной совместимости
+            $pathExists = false;
+            foreach ($this->paths as $existingPath) {
+                $existingPathValue = is_array($existingPath) ? $existingPath['path'] : $existingPath;
+                if ($existingPathValue === $normalizedPath) {
+                    $pathExists = true;
+                    break;
+                }
+            }
+
+            if (!$pathExists) {
+                $this->paths[] = [
+                    'path' => $normalizedPath,
+                    'context' => $context
+                ];
+                error_log("Added core template path: '{$normalizedPath}' with context: '{$context}'");
+            }
         }
     }
 
@@ -202,5 +188,12 @@ class TemplateManager {
      */
     public function getPaths(): array {
         return $this->paths;
+    }
+
+    /**
+     * Получает список всех зарегистрированных путей плагинов
+     */
+    public function getPluginPaths(): array {
+        return $this->pluginPaths;
     }
 }
