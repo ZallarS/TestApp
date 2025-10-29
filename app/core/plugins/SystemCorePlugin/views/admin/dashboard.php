@@ -651,15 +651,5 @@
         });
     });
 </script>
-<?php
-try {
-    $hookManager = Core::getInstance()->getManager('hook');
-    if ($hookManager && $hookManager->hasAction('home_after_content')) {
-        $hookManager->doAction('home_after_content');
-    }
-} catch (Exception $e) {
-    error_log("Hook error in home page: " . $e->getMessage());
-}
-?>
 </body>
 </html>

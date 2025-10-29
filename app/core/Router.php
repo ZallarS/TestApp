@@ -57,14 +57,7 @@ class Router {
         error_log("Calling handler: {$handler}");
 
         [$controller, $method] = explode('@', $handler);
-
-        // Пытаемся найти контроллер в плагинах
-        $controllerFile = $this->findControllerInPlugins($controller);
-
-        if (!$controllerFile) {
-            // Если не нашли в плагинах, ищем в основном каталоге контроллеров
-            $controllerFile = APP_PATH . "controllers/{$controller}.php";
-        }
+        $controllerFile = APP_PATH . "controllers/{$controller}.php";
 
         if (!file_exists($controllerFile)) {
             throw new Exception("Controller file not found: {$controllerFile}");
@@ -86,51 +79,7 @@ class Router {
         $instance->$method();
     }
 
-    /**
-     * Ищет контроллер в папках плагинов
-     */
-    private function findControllerInPlugins(string $controller): ?string {
-        $pluginsPath = PLUGINS_PATH;
-
-        if (!is_dir($pluginsPath)) {
-            error_log("Plugins directory not found: {$pluginsPath}");
-            return null;
-        }
-
-        $pluginDirs = scandir($pluginsPath);
-        if ($pluginDirs === false) {
-            error_log("Cannot scan plugins directory: {$pluginsPath}");
-            return null;
-        }
-
-        foreach ($pluginDirs as $dir) {
-            if ($dir === '.' || $dir === '..') continue;
-
-            // Проверяем в папке controllers плагина
-            $controllerFile = $pluginsPath . "{$dir}/controllers/{$controller}.php";
-            error_log("Checking plugin controller: {$controllerFile}");
-
-            if (file_exists($controllerFile)) {
-                error_log("Found controller in plugin: {$controllerFile}");
-                return $controllerFile;
-            }
-
-            // Также проверяем в корне плагина (для обратной совместимости)
-            $controllerFileAlt = $pluginsPath . "{$dir}/{$controller}.php";
-            error_log("Checking alternative plugin controller: {$controllerFileAlt}");
-
-            if (file_exists($controllerFileAlt)) {
-                error_log("Found controller in plugin root: {$controllerFileAlt}");
-                return $controllerFileAlt;
-            }
-        }
-
-        error_log("Controller {$controller} not found in any plugin");
-        return null;
-    }
-
     private function matchRoute(array $route, array $request): bool {
-        // Простое сравнение путей - позже можно добавить поддержку параметров
         return $route['method'] === $request['method'] && $route['path'] === $request['path'];
     }
 
