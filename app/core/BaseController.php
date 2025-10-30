@@ -79,4 +79,18 @@ class BaseController {
 
         return 'other';
     }
+    /**
+     * Рендерит динамическую позицию
+     */
+    protected function renderDynamicPosition(string $position, array $context = []): void {
+        echo DynamicHookManager::renderPosition($position, $context);
+    }
+
+    /**
+     * Проверяет, есть ли обработчики для динамической позиции
+     */
+    protected function hasDynamicPosition(string $position): bool {
+        $positionsInfo = DynamicHookManager::getPositionsInfo();
+        return !empty($positionsInfo['handlers'][$position]);
+    }
 }

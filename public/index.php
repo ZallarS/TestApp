@@ -32,7 +32,7 @@ error_reporting(E_ALL);
         }
     }
 
-    // РУЧНАЯ ЗАГРУЗКА КЛАССОВ В ПРАВИЛЬНОМ ПОРЯДКЕ
+        // РУЧНАЯ ЗАГРУЗКА КЛАССОВ В ПРАВИЛЬНОМ ПОРЯДКЕ
     $coreClasses = [
         'HookManager',
         'TemplateManager',
@@ -41,8 +41,10 @@ error_reporting(E_ALL);
         'BaseController',
         'BasePlugin',
         'PluginManager',
-        'Core'
+        'Core',
+        'DynamicHookManager' // ДОБАВЛЯЕМ DynamicHookManager
     ];
+
     foreach ($coreClasses as $className) {
         $classFile = APP_PATH . "core/{$className}.php";
         if (file_exists($classFile)) {
