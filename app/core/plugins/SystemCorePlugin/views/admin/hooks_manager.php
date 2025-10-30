@@ -51,3 +51,25 @@
         </p>
     <?php endif; ?>
 </div>
+<!-- Статистика и действия -->
+<div style="display: flex; gap: 10px; margin: 20px 0;">
+    <a href="/admin/hooks/cleanup" class="btn btn-warning">
+        🧹 Проверить висячие хуки
+    </a>
+    <a href="/admin/hooks" class="btn btn-primary">
+        📋 Общий список хуков
+    </a>
+</div>
+
+<!-- Добавляем информацию о висячих хуках -->
+<?php
+$hookManager = Core::getInstance()->getManager('hook');
+$orphanedStats = $hookManager->getOrphanedHooksStats();
+?>
+<?php if ($orphanedStats['total'] > 0): ?>
+    <div class="alert alert-warning">
+        <strong>Обнаружены висячие хуки:</strong>
+        <?php echo $orphanedStats['total']; ?> обработчиков требуют очистки.
+        <a href="/admin/hooks/cleanup" style="margin-left: 10px;">Перейти к очистке</a>
+    </div>
+<?php endif; ?>

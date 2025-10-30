@@ -78,7 +78,10 @@
             $this->managers['plugin']->loadPlugins();
             error_log("After plugins load. Memory: " . memory_get_usage() . " bytes");
 
-            // НОВОЕ: Сканируем и регистрируем хуки плагинов
+            // НОВОЕ: Очищаем висячие хуки при запуске системы
+            $this->cleanupOrphanedHooks();
+            error_log("After orphaned hooks cleanup. Memory: " . memory_get_usage() . " bytes");
+
             $this->discoverPluginHooks();
             error_log("After hooks discovery. Memory: " . memory_get_usage() . " bytes");
 
@@ -91,7 +94,15 @@
             $this->managers['router']->dispatch();
             error_log("Core::init completed. Memory: " . memory_get_usage() . " bytes");
         }
-
+        /**
+         * Очищает висячие хуки при запуске системы
+         */
+        private function cleanupOrphanedHooks(): void {
+            $pluginManager = $this->getManager('plugin');
+            if (method_exists($pluginManager, 'cleanupOrphanedHooks')) {
+                $pluginManager->cleanupOrphanedHooks();
+            }
+        }
         /**
          * Автоматически обнаруживает и регистрирует хуки из плагинов
          */
@@ -245,6 +256,9 @@
             // управления хуками
             $router->addRoute('GET', '/admin/hooks', 'AdminController@hooksManager');
             $router->addRoute('GET', '/admin/hook/{name}', 'AdminController@hookDetails');
+            $router->addRoute('GET', '/admin/hooks/cleanup', 'AdminController@hooksCleanup');
+            $router->addRoute('POST', '/admin/hooks/cleanup', 'AdminController@hooksCleanup');
+            $router->addRoute('POST', '/admin/hooks/cleanup-plugin/{name}', 'AdminController@cleanupPluginHooks');
         }
 
         public function getRouter() {

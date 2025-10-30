@@ -50,6 +50,45 @@ class AdminController extends BaseController {
             'hook' => $hookDetails
         ]);
     }
+    public function hooksCleanup(): void {
+        $hookManager = Core::getInstance()->getManager('hook');
+
+        // Получаем статистику висячих хуков
+        $orphanedStats = $hookManager->getOrphanedHooksStats();
+
+        // Очищаем висячие хуки если запрошено
+        $cleanedCount = 0;
+        if (isset($_POST['cleanup_orphaned_hooks'])) {
+            $cleanedCount = $hookManager->cleanupInvalidHandlers();
+            $this->setMessage("Очищено {$cleanedCount} висячих хуков", 'success');
+
+            // Обновляем статистику
+            $orphanedStats = $hookManager->getOrphanedHooksStats();
+        }
+
+        // Получаем информацию о всех хуках
+        $hooksInfo = $hookManager->getHooksInfo();
+
+        $this->render('admin/hooks_cleanup', [
+            'title' => 'Очистка висячих хуков',
+            'orphaned_stats' => $orphanedStats,
+            'hooks_info' => $hooksInfo,
+            'cleaned_count' => $cleanedCount
+        ]);
+    }
+
+    public function cleanupPluginHooks(string $pluginName): void {
+        $hookManager = Core::getInstance()->getManager('hook');
+
+        try {
+            $removedCount = $hookManager->removePluginHooks($pluginName);
+            $this->setMessage("Удалено {$removedCount} хуков плагина '{$pluginName}'", 'success');
+        } catch (Exception $e) {
+            $this->setMessage("Ошибка при очистке хуков: " . $e->getMessage(), 'error');
+        }
+
+        $this->redirect('/admin/hooks');
+    }
     public function togglePlugin(): void {
         $pluginName = $_POST['plugin_name'] ?? '';
         $action = $_POST['action'] ?? '';

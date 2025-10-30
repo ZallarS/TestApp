@@ -258,11 +258,63 @@ class PluginManager {
         if (isset($this->plugins[$pluginName])) {
             $this->activePlugins[$pluginName] = false;
             $this->saveActivePluginsConfig();
+
+            // ОЧИСТКА: Удаляем ВСЕ хуки плагина
+            $this->removePluginHooks($pluginName);
+
+            // Отправляем уведомление о деактивации плагина
+            $this->sendPluginDeactivationNotification($pluginName);
+
             return true;
         }
         return false;
     }
+    private function sendPluginActivationNotification(string $pluginName): void {
+        try {
+            $hookManager = Core::getInstance()->getManager('hook');
 
+            // ГРАЦИОЗНАЯ ДЕГРАДАЦИЯ: Проверяем, есть ли активные обработчики
+            if ($hookManager->hasAction('system_after_plugin_activate')) {
+                $hookManager->doAction('system_after_plugin_activate', $pluginName);
+            } else {
+                error_log("No handlers for system_after_plugin_activate hook");
+                // Можно добавить fallback-логику здесь
+            }
+        } catch (Exception $e) {
+            error_log("Error sending plugin activation notification: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Удаляет все хуки, зарегистрированные плагином
+     */
+    private function removePluginHooks(string $pluginName): void {
+        try {
+            $hookManager = Core::getInstance()->getManager('hook');
+            if (method_exists($hookManager, 'removePluginHooks')) {
+                $removedCount = $hookManager->removePluginHooks($pluginName);
+                error_log("Removed {$removedCount} hooks for deactivated plugin: {$pluginName}");
+            }
+        } catch (Exception $e) {
+            error_log("Error removing hooks for plugin {$pluginName}: " . $e->getMessage());
+        }
+    }
+    /**
+     * Автоматически очищает все висячие хуки при загрузке
+     */
+    public function cleanupOrphanedHooks(): void {
+        try {
+            $hookManager = Core::getInstance()->getManager('hook');
+            if (method_exists($hookManager, 'cleanupInvalidHandlers')) {
+                $cleanedCount = $hookManager->cleanupInvalidHandlers();
+                if ($cleanedCount > 0) {
+                    error_log("Automatically cleaned up {$cleanedCount} orphaned hook handlers during system startup");
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Error cleaning up orphaned hooks: " . $e->getMessage());
+        }
+    }
     public function installPlugin(string $pluginName): bool {
         $plugin = $this->getPlugin($pluginName);
         if ($plugin && method_exists($plugin, 'install')) {
@@ -278,7 +330,18 @@ class PluginManager {
 
         $plugin = $this->getPlugin($pluginName);
         if ($plugin && method_exists($plugin, 'uninstall')) {
-            return $plugin->uninstall();
+            // ОЧИСТКА: Удаляем ВСЕ хуки плагина перед удалением
+            $this->removePluginHooks($pluginName);
+
+            // Вызываем метод uninstall плагина
+            $result = $plugin->uninstall();
+
+            // Удаляем плагин из списка
+            unset($this->plugins[$pluginName]);
+            unset($this->activePlugins[$pluginName]);
+            $this->saveActivePluginsConfig();
+
+            return $result;
         }
         return false;
     }
