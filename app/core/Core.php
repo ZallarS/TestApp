@@ -241,13 +241,6 @@
             $router->addRoute('GET', '/admin', 'AdminController@dashboard');
             $router->addRoute('POST', '/admin/plugins/toggle', 'AdminController@togglePlugin');
 
-            // Системные API
-            $router->addRoute('GET', '/system/health', 'SystemController@healthCheck');
-            $router->addRoute('GET', '/system/info', 'SystemController@systemInfo');
-
-            // Тестовый маршрут
-            $router->addRoute('GET', '/test', 'TestController@simple');
-
             // маршруты для зависимостей
             $router->addRoute('GET', '/admin/plugin/{name}', 'AdminController@pluginDetails');
             $router->addRoute('POST', '/admin/plugins/activate-with-deps', 'AdminController@activatePluginWithDeps');
