@@ -144,6 +144,31 @@ $container = new Container();
 // Регистрируем конфигурацию
 $container->instance('config', $config);
 
+// Регистрируем контроллеры в контейнере
+$container->bind('HomeController', function($c) {
+    return new HomeController(
+        $c->make('template'),
+        $c->make('hook'),
+        $c->make('plugin')
+    );
+});
+
+$container->bind('AdminController', function($c) {
+    return new AdminController(
+        $c->make('template'),
+        $c->make('hook'),
+        $c->make('plugin')
+    );
+});
+
+$container->bind('PluginManagerController', function($c) {
+    return new PluginManagerController(
+        $c->make('template'),
+        $c->make('hook'),
+        $c->make('plugin')
+    );
+});
+
 // Регистрируем базовые сервисы
 $container->singleton(PluginManagerInterface::class, function($c) {
     $pluginManager = new PluginManager($c->make('config'));

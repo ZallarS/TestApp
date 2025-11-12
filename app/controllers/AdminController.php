@@ -14,11 +14,44 @@
         }
 
         public function dashboard() {
-            $this->setLayout('admin'); // Используем админ layout
+            $this->setLayout('admin');
+
+            // Получаем менеджеры
+            $hookManager = $this->hookManager;
+            $pluginManager = $this->pluginManager;
+
+            // Собираем данные для дашборда
+            $hooksInfo = $hookManager->getHooksInfo();
+            $pluginsStats = $pluginManager->getPluginsStats();
+            $orphanedStats = $hookManager->getOrphanedHooksStats();
+
+            // Пример данных для активности (в реальной системе это будет из базы или логов)
+            $recentActivities = [
+                [
+                    'time' => date('H:i:s'),
+                    'action' => 'Система запущена',
+                    'plugin' => 'SystemCore',
+                    'status' => 'success'
+                ],
+                [
+                    'time' => date('H:i:s', time() - 60),
+                    'action' => 'Загружены плагины',
+                    'plugin' => 'PluginManager',
+                    'status' => 'success'
+                ]
+            ];
+
             $this->render('admin/dashboard', [
                 'title' => 'Панель управления',
                 'current_page' => 'dashboard',
-                'content' => 'Контент дашборда...'
+                'hooks_info' => $hooksInfo,
+                'plugins_stats' => $pluginsStats,
+                'orphaned_stats' => $orphanedStats,
+                'recent_activities' => $recentActivities,
+                'system_info' => [
+                    'version' => '1.0.0',
+                    'php_version' => PHP_VERSION
+                ]
             ]);
         }
 
@@ -26,8 +59,10 @@
             $hookManager = $this->hookManager;
             $hooksInfo = $hookManager->getHooksInfo();
 
+            $this->setLayout('admin'); // Добавляем эту строку
             $this->render('admin/hooks_manager', [
                 'title' => 'Управление хуками системы',
+                'current_page' => 'hooks', // Добавляем для подсветки меню
                 'hooks_info' => $hooksInfo
             ]);
         }
@@ -76,8 +111,10 @@
             // Получаем информацию о всех хуках
             $hooksInfo = $hookManager->getHooksInfo();
 
+            $this->setLayout('admin'); // Добавляем эту строку
             $this->render('admin/hooks_cleanup', [
                 'title' => 'Очистка висячих хуков',
+                'current_page' => 'hooks', // Добавляем для подсветки меню
                 'orphaned_stats' => $orphanedStats,
                 'hooks_info' => $hooksInfo,
                 'cleaned_count' => $cleanedCount

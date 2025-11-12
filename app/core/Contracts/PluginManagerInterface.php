@@ -8,7 +8,27 @@ interface PluginManagerInterface {
     /**
      * Возвращает все загруженные плагины
      */
+
     public function getPlugins(): array;
+    /**
+     * Получает расширенную статистику плагинов с информацией о зависимостях
+     */
+    public function getExtendedPluginsStats(): array;
+
+    /**
+     * Проверяет, можно ли деактивировать плагин (нет зависимых плагинов)
+     */
+    public function canDeactivate(string $pluginName): array;
+
+    /**
+     * Получает информацию о всех зависимостях в системе
+     */
+    public function getDependenciesGraph(): array;
+
+    /**
+     * Получает информацию о конкретном плагине для детальной страницы
+     */
+    public function getPluginDetails(string $pluginName): array;
     /**
      * Возвращает плагин по имени
      */
