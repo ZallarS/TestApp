@@ -293,6 +293,13 @@
             $router->addRoute('POST', '/admin/plugins/activate-with-deps', 'AdminController@activatePluginWithDeps');
             $router->addRoute('GET', '/admin/plugins/check-deps', 'AdminController@checkDependencies');
 
+            // Управление плагинами
+            $router->addRoute('GET', '/admin/plugins', 'PluginManagerController@index');
+            $router->addRoute('GET', '/admin/plugins/details/{name}', 'PluginManagerController@pluginDetails');
+            $router->addRoute('POST', '/admin/plugins/toggle', 'PluginManagerController@togglePlugin');
+            $router->addRoute('POST', '/admin/plugins/activate-with-deps', 'PluginManagerController@activateWithDependencies');
+            $router->addRoute('GET', '/admin/plugins/check-deps', 'PluginManagerController@checkDependencies');
+
             // Управления хуками
             $router->addRoute('GET', '/admin/hooks', 'AdminController@hooksManager');
             $router->addRoute('GET', '/admin/hook/{name}', 'AdminController@hookDetails');

@@ -503,6 +503,173 @@ class PluginManager implements PluginManagerInterface {
         ];
     }
 
+    public function getExtendedPluginsStats(): array {
+        $pluginsStats = $this->getPluginsStats();
+
+        $extendedStats = [
+            'system_plugins' => [],
+            'user_plugins' => [],
+            'dependency_graph' => [],
+            'conflicts' => [],
+            'recommendations' => []
+        ];
+
+        // Добавляем информацию о зависимостях для системных плагинов
+        foreach ($pluginsStats['system_plugins'] as $name => $plugin) {
+            $extendedStats['system_plugins'][$name] = [
+                'plugin' => $plugin,
+                'dependencies' => $this->getDependencyInfo($name),
+                'dependents' => $this->getDependentPlugins($name),
+                'can_deactivate' => false, // Системные плагины нельзя деактивировать
+                'is_active' => true, // Системные плагины всегда активны
+                'conflicts' => $this->checkConflicts($plugin)
+            ];
+        }
+
+        // Добавляем информацию о зависимостях для пользовательских плагинов
+        foreach ($pluginsStats['user_plugins'] as $name => $plugin) {
+            $extendedStats['user_plugins'][$name] = [
+                'plugin' => $plugin,
+                'dependencies' => $this->getDependencyInfo($name),
+                'dependents' => $this->getDependentPlugins($name),
+                'can_deactivate' => $this->canDeactivate($name)['can_deactivate'],
+                'deactivation_errors' => $this->canDeactivate($name)['errors'],
+                'is_active' => $this->isActive($name), // Добавляем статус активности
+                'conflicts' => $this->checkConflicts($plugin),
+                'recommendations' => $this->getRecommendedPlugins($plugin)
+            ];
+        }
+
+        // Строим граф зависимостей
+        $extendedStats['dependency_graph'] = $this->getDependenciesGraph();
+
+        return $extendedStats;
+    }
+
+    public function canDeactivate(string $pluginName): array {
+        $result = [
+            'can_deactivate' => true,
+            'errors' => []
+        ];
+
+        if (isset($this->systemPlugins[$pluginName])) {
+            $result['can_deactivate'] = false;
+            $result['errors'][] = "Системный плагин '{$pluginName}' нельзя деактивировать";
+            return $result;
+        }
+
+        // Проверяем, нет ли активных плагинов, которые зависят от этого плагина
+        $dependents = $this->getDependentPlugins($pluginName);
+        $activeDependents = array_filter($dependents, function($dependent) {
+            return $this->isActive($dependent['name']);
+        });
+
+        if (!empty($activeDependents)) {
+            $dependentNames = array_column($activeDependents, 'name');
+            $result['can_deactivate'] = false;
+            $result['errors'][] = "Невозможно деактивировать: следующие плагины зависят от '{$pluginName}': " .
+                implode(', ', $dependentNames);
+        }
+
+        return $result;
+    }
+
+    public function getDependenciesGraph(): array {
+        $graph = [
+            'nodes' => [],
+            'edges' => []
+        ];
+
+        $allPlugins = $this->getPlugins();
+
+        foreach ($allPlugins as $name => $plugin) {
+            // Добавляем узел для плагина
+            $graph['nodes'][$name] = [
+                'id' => $name,
+                'label' => $name,
+                'version' => $plugin->getVersion(),
+                'type' => isset($this->systemPlugins[$name]) ? 'system' : 'user',
+                'active' => $this->isActive($name)
+            ];
+
+            // Добавляем связи для зависимостей
+            $dependencies = $plugin->getDependencies();
+            foreach ($dependencies as $depName => $constraint) {
+                $graph['edges'][] = [
+                    'from' => $name,
+                    'to' => $depName,
+                    'type' => 'dependency',
+                    'constraint' => $constraint
+                ];
+            }
+
+            // Добавляем связи для конфликтов
+            $conflicts = $plugin->getConflicts();
+            foreach ($conflicts as $conflictName => $reason) {
+                if (isset($allPlugins[$conflictName])) {
+                    $graph['edges'][] = [
+                        'from' => $name,
+                        'to' => $conflictName,
+                        'type' => 'conflict',
+                        'reason' => $reason
+                    ];
+                }
+            }
+        }
+
+        return $graph;
+    }
+
+    public function getPluginDetails(string $pluginName): array {
+        $plugin = $this->getPlugin($pluginName);
+        if (!$plugin) {
+            throw new Exception("Plugin {$pluginName} not found");
+        }
+
+        $dependencyInfo = $this->getDependencyInfo($pluginName);
+        $dependents = $this->getDependentPlugins($pluginName);
+        $canDeactivate = $this->canDeactivate($pluginName);
+
+        return [
+            'plugin' => $plugin,
+            'is_active' => $this->isActive($pluginName),
+            'dependency_info' => $dependencyInfo,
+            'dependents' => $dependents,
+            'can_deactivate' => $canDeactivate['can_deactivate'],
+            'deactivation_errors' => $canDeactivate['errors'],
+            'conflicts' => $this->checkConflicts($plugin),
+            'recommendations' => $this->getRecommendedPlugins($plugin),
+            'hooks_registered' => $this->getPluginHooks($pluginName)
+        ];
+    }
+
+    /**
+     * Получает хуки, зарегистрированные плагином
+     */
+    private function getPluginHooks(string $pluginName): array {
+        $hooks = [];
+
+        try {
+            $hookManager = Core::getInstance()->getManager('hook');
+            $hooksInfo = $hookManager->getHooksInfo();
+
+            // Ищем хуки, зарегистрированные этим плагином
+            foreach ($hooksInfo['dynamic_hooks'] as $hookName => $hookInfo) {
+                if (($hookInfo['registered_by'] ?? '') === $pluginName) {
+                    $hooks[] = [
+                        'name' => $hookName,
+                        'type' => $hookInfo['type'],
+                        'description' => $hookInfo['description']
+                    ];
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Error getting plugin hooks: " . $e->getMessage());
+        }
+
+        return $hooks;
+    }
+
     public function getDependentPlugins(string $pluginName): array {
         $dependents = [];
 

@@ -133,6 +133,66 @@
                 flex-direction: column;
             }
         }
+        /* Стили для вкладок */
+        .tab-container {
+            margin: 20px 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            transition: all 0.2s;
+        }
+
+        .tab-button:hover {
+            color: #374151;
+            background: #f9fafb;
+        }
+
+        .tab-button.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+            background: #f0f9ff;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px 0;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Адаптивность для вкладок */
+        @media (max-width: 768px) {
+            .tab-buttons {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                text-align: left;
+                border-bottom: 1px solid #e5e7eb;
+                border-left: 3px solid transparent;
+            }
+
+            .tab-button.active {
+                border-left-color: #3b82f6;
+                border-bottom-color: transparent;
+            }
+        }
     </style>
 
     <!-- Хуки админки в head -->
@@ -173,13 +233,6 @@
 
             <?php hook_position('admin_sidebar_nav_middle'); ?>
 
-            <a href="/system/health" class="nav-item">
-                ❤️ Статус системы
-            </a>
-
-            <a href="/system/info" class="nav-item">
-                ℹ️ Информация
-            </a>
 
             <?php hook_position('admin_sidebar_nav_end'); ?>
 
@@ -251,10 +304,31 @@
 </div>
 
 <!-- Скрипты админки -->
-<?php hook_position('admin_before_scripts'); ?>
-<?php hook_position('admin_footer_scripts'); ?>
-<?php hook_position('admin_after_scripts'); ?>
+<script>
+    // Функция для переключения вкладок
+    function switchTab(tabName) {
+        // Скрываем все вкладки
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        // Убираем активный класс со всех кнопок
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.remove('active');
+        });
+
+        // Показываем выбранную вкладку
+        document.getElementById(tabName).classList.add('active');
+
+        // Активируем кнопку
+        event.target.classList.add('active');
+    }
+
+    // Дополнительные скрипты для конкретных страниц
+    <?php hook_position('admin_custom_scripts'); ?>
+</script>
 
 <?php hook_position('admin_body_end'); ?>
 </body>
 </html>
+
