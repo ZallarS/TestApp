@@ -33,7 +33,35 @@ class DynamicHookManager {
 
         error_log("Handler added for dynamic position: {$position}");
     }
+    /**
+     * Автоматически регистрирует позицию при первом использовании
+     */
+    public static function autoRegisterPosition(string $position): void {
+        if (!isset(self::$dynamicPositions[$position])) {
+            self::registerPosition($position, "Auto-registered position");
+            error_log("Auto-registered dynamic position: {$position}");
+        }
+    }
+    /**
+     * Универсальный метод для рендера позиции с автоматической регистрацией
+     */
+    public static function render(string $position, array $context = []): string {
+        self::autoRegisterPosition($position);
+        return self::renderPosition($position, $context);
+    }
+    /**
+     * Проверяет, есть ли обработчики для позиции
+     */
+    public static function hasHandlers(string $position): bool {
+        return !empty(self::$positionHandlers[$position]);
+    }
 
+    /**
+     * Получает все зарегистрированные позиции
+     */
+    public static function getAllPositions(): array {
+        return self::$dynamicPositions;
+    }
     /**
      * Выполняет все обработчики для указанной позиции
      */

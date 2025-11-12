@@ -1,25 +1,23 @@
-    <?php
+<?php
 
     class HomeController extends BaseController {
 
-        public function __construct() {
-            parent::__construct();
+        /**
+         * @param TemplateManagerInterface $template
+         * @param HookManagerInterface $hookManager
+         * @param PluginManagerInterface $pluginManager
+         */
+        public function __construct($template, $hookManager, $pluginManager) { // Убрать типы параметров
+            parent::__construct($template, $hookManager, $pluginManager);
             $this->setLayout(false);
         }
 
         public function index() {
-            $core = Core::getInstance();
-            $pluginsStats = $core->getPluginsStats();
-            $systemInfo = $core->getSystemInfo();
-
-            $data = [
-                'title' => 'Главная страница системы управления плагинами',
-                'plugins_stats' => $pluginsStats,
-                'system_info' => $systemInfo
-            ];
-
-            // Теперь ищет в SystemCorePlugin/views/home/home.php
-            $this->render('home/home', $data);
+            $this->setLayout('default'); // Используем базовый layout
+            $this->render('home/index', [
+                'title' => 'Главная страница',
+                'content' => 'Добро пожаловать в систему!'
+            ]);
         }
 
         protected function getCurrentPage(): string {
