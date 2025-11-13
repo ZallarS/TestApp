@@ -207,7 +207,7 @@
 
 <style>
     body { margin: 0; padding: 0; background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    .admin-page-content { padding: 20px; min-width: 320px; }
+    .admin-page-content {min-width: 320px; }
     .admin-section { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 25px; }
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0; }
     .stat-card { padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #e9ecef; }
