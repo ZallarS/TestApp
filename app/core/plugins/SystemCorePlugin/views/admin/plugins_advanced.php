@@ -282,12 +282,6 @@
         </div>
     </div>
 
-    <!-- Навигация -->
-    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-        <a href="/admin" class="btn" style="color: #6c757d; text-decoration: none;">
-            ← В панель управления
-        </a>
-    </div>
 </div>
 
 <script>

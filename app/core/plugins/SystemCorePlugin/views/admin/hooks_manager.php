@@ -127,10 +127,6 @@
         </div>
     </div>
 
-    <!-- Навигация -->
-    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-        <a href="/admin" style="color: #007bff; text-decoration: none;">← Назад в панель управления</a>
-    </div>
 </div>
 
 <style>
