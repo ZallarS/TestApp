@@ -168,12 +168,7 @@
 
         <!-- Навигация -->
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-            <a href="/admin/plugins/advanced" class="btn btn-primary" style="margin-right: 15px;">
-                📊 Расширенное управление
-            </a>
-            <a href="/admin" class="btn" style="color: #6c757d; text-decoration: none;">
-                ← В панель управления
-            </a>
+            <a href="/admin/plugins/advanced" class="btn btn-primary" style="margin-right: 15px;">📊 Расширенное управление</a>
         </div>
     </div>
 </div>

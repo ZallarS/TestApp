@@ -306,6 +306,9 @@
             $router->addRoute('GET', '/admin/hooks/cleanup', 'AdminController@hooksCleanup');
             $router->addRoute('POST', '/admin/hooks/cleanup', 'AdminController@hooksCleanup');
             $router->addRoute('POST', '/admin/hooks/cleanup-plugin/{name}', 'AdminController@cleanupPluginHooks');
+
+            $router->addRoute('GET', '/admin/hooks/list', 'HookController@hooksList');
+            $router->addRoute('GET', '/admin/plugins/widget', 'PluginController@pluginsWidget');
         }
 
         public function getConfig(?string $key = null) {

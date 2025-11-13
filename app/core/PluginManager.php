@@ -87,16 +87,12 @@ class PluginManager implements PluginManagerInterface {
         error_log("Loading system plugins from: " . $systemPluginsPath);
 
         if (!is_dir($systemPluginsPath)) {
-            error_log("System plugins directory does not exist: " . $systemPluginsPath);
             @mkdir($systemPluginsPath, 0755, true);
             return;
         }
 
         $pluginFolders = @scandir($systemPluginsPath);
-        if ($pluginFolders === false) {
-            error_log("Cannot scan system plugins directory: " . $systemPluginsPath);
-            return;
-        }
+        if ($pluginFolders === false) return;
 
         foreach ($pluginFolders as $folder) {
             if ($folder === '.' || $folder === '..') continue;
@@ -114,12 +110,11 @@ class PluginManager implements PluginManagerInterface {
                         $this->systemPlugins[$folder] = $plugin;
                         $this->activePlugins[$folder] = true;
 
-                        error_log("Successfully loaded system plugin: " . $folder);
-
+                        // Регистрируем путь к шаблонам системного плагина
                         $viewsPath = $pluginPath . 'views/';
                         if (is_dir($viewsPath) && $this->templateManager) {
-                            $this->templateManager->addPath($viewsPath, 'systemcore');
-                            error_log("Registered system template path: " . $viewsPath);
+                            $this->templateManager->addPluginPath($folder, $viewsPath);
+                            error_log("Registered system plugin template path: {$viewsPath}");
                         }
                     }
                 } catch (Exception $e) {
@@ -134,16 +129,12 @@ class PluginManager implements PluginManagerInterface {
         error_log("Loading user plugins from: " . $pluginsDir);
 
         if (!is_dir($pluginsDir)) {
-            error_log("PLUGINS_PATH directory does not exist: " . $pluginsDir);
             @mkdir($pluginsDir, 0755, true);
             return;
         }
 
         $pluginFolders = @scandir($pluginsDir);
-        if ($pluginFolders === false) {
-            error_log("Cannot scan plugins directory: " . $pluginsDir);
-            return;
-        }
+        if ($pluginFolders === false) return;
 
         $hasNewPlugins = false;
 
@@ -165,17 +156,21 @@ class PluginManager implements PluginManagerInterface {
                         $this->plugins[$folder] = $plugin;
                         error_log("Successfully loaded plugin: " . $folder);
 
+                        // Регистрируем путь к шаблонам пользовательского плагина
+                        $viewsPath = $pluginPath . 'views/';
+                        if (is_dir($viewsPath) && $this->templateManager) {
+                            $this->templateManager->addPluginPath($folder, $viewsPath);
+                            error_log("Registered user plugin template path: {$viewsPath}");
+                        }
+
                         if (!isset($this->activePlugins[$folder])) {
                             $this->activePlugins[$folder] = true;
                             $hasNewPlugins = true;
-                            error_log("Activated new plugin: " . $folder);
                         }
                     }
                 } catch (Exception $e) {
                     error_log("Error loading plugin {$folder}: " . $e->getMessage());
                 }
-            } else {
-                error_log("Plugin file does not exist: " . $pluginFile);
             }
         }
 
