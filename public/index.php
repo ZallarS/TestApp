@@ -20,7 +20,8 @@ $requiredDirs = [
     APP_PATH . 'controllers',
     APP_PATH . 'views',
     APP_PATH . 'plugins',
-    APP_PATH . 'migrations'
+    APP_PATH . 'migrations',
+    APP_PATH . 'core/plugins' // Добавляем папку для системных плагинов
 ];
 
 foreach ($requiredDirs as $dir) {
@@ -29,7 +30,26 @@ foreach ($requiredDirs as $dir) {
     }
 }
 
-// ЗАГРУЗКА ИНТЕРФЕЙСОВ - ПЕРВЫМ ДЕЛОМ
+// 1. СНАЧАЛА ЗАГРУЖАЕМ БАЗОВЫЕ КЛАССЫ ЯДРА
+$coreClasses = [
+    'Container',
+    'BaseController',
+    'BasePlugin',
+    'Core'
+];
+
+foreach ($coreClasses as $className) {
+    $classFile = APP_PATH . "core/{$className}.php";
+    if (file_exists($classFile)) {
+        require_once $classFile;
+        error_log("Base class loaded: {$className}");
+    } else {
+        error_log("CRITICAL: Base class not found: {$className} at {$classFile}");
+        throw new Exception("Required base class not found: {$className}");
+    }
+}
+
+// 2. ЗАГРУЖАЕМ ИНТЕРФЕЙСЫ
 $interfaceFiles = [
     'PluginManagerInterface',
     'HookManagerInterface',
@@ -46,28 +66,24 @@ foreach ($interfaceFiles as $interface) {
     }
 }
 
-// РУЧНАЯ ЗАГРУЗКА КЛАССОВ В ПРАВИЛЬНОМ ПОРЯДКЕ
-$coreClasses = [
-    'Container',
+// 3. ЗАГРУЖАЕМ ОСТАЛЬНЫЕ КЛАССЫ ЯДРА
+$additionalClasses = [
     'HookManager',
     'TemplateManager',
     'MigrationManager',
     'Router',
-    'BaseController',
-    'BasePlugin',
-    'PluginManager',
-    'Core',
+    'ControllerFactory',
     'DynamicHookManager',
-    'ControllerFactory'
+    'PluginManager'
 ];
 
-foreach ($coreClasses as $className) {
+foreach ($additionalClasses as $className) {
     $classFile = APP_PATH . "core/{$className}.php";
     if (file_exists($classFile)) {
         require_once $classFile;
-        error_log("Class loaded: {$className}");
+        error_log("Core class loaded: {$className}");
     } else {
-        error_log("Core class not found: {$className} at {$classFile}");
+        error_log("Core class not found: {$className}");
     }
 }
 
@@ -100,74 +116,11 @@ try {
     $config = ['debug' => true];
 }
 
-// Загрузка контроллеров
-$controllerFiles = [
-    'HomeController',
-    'AdminController',
-    'SystemController'
-];
-
-foreach ($controllerFiles as $controller) {
-    $file = APP_PATH . "controllers/{$controller}.php";
-    if (file_exists($file)) {
-        require_once $file;
-        error_log("Controller loaded: {$controller}");
-    } else {
-        error_log("Controller not found: {$controller}");
-    }
-}
-
-// ПРОВЕРКА ЗАГРУЗКИ ВСЕХ НЕОБХОДИМЫХ КЛАССОВ
-$requiredClasses = [
-    'Container',
-    'HookManager',
-    'TemplateManager',
-    'PluginManager',
-    'Router',
-    'BaseController',
-    'BasePlugin',
-    'Core',
-    'ControllerFactory'
-];
-
-foreach ($requiredClasses as $className) {
-    if (!class_exists($className)) {
-        throw new Exception("Required class not loaded: {$className}");
-    }
-}
-
-error_log("All classes loaded successfully");
-
 // СОЗДАНИЕ И НАСТРОЙКА DI CONTAINER
 $container = new Container();
 
 // Регистрируем конфигурацию
 $container->instance('config', $config);
-
-// Регистрируем контроллеры в контейнере
-$container->bind('HomeController', function($c) {
-    return new HomeController(
-        $c->make('template'),
-        $c->make('hook'),
-        $c->make('plugin')
-    );
-});
-
-$container->bind('AdminController', function($c) {
-    return new AdminController(
-        $c->make('template'),
-        $c->make('hook'),
-        $c->make('plugin')
-    );
-});
-
-$container->bind('PluginManagerController', function($c) {
-    return new PluginManagerController(
-        $c->make('template'),
-        $c->make('hook'),
-        $c->make('plugin')
-    );
-});
 
 // Регистрируем базовые сервисы
 $container->singleton(PluginManagerInterface::class, function($c) {
@@ -184,11 +137,16 @@ $container->singleton(TemplateManagerInterface::class, function($c) {
 });
 
 $container->singleton(Router::class, function($c) {
-    return new Router();
+    $router = new Router();
+    return $router;
 });
 
 $container->singleton(MigrationManager::class, function($c) {
     return new MigrationManager();
+});
+
+$container->singleton(ControllerFactory::class, function($c) {
+    return new ControllerFactory($c);
 });
 
 // Алиасы для обратной совместимости
@@ -208,11 +166,6 @@ $pluginManager->setTemplateManager($templateManager);
 // Сохраняем обновленный PluginManager обратно в контейнер
 $container->instance(PluginManagerInterface::class, $pluginManager);
 
-// Регистрируем ControllerFactory
-$container->singleton(ControllerFactory::class, function($c) {
-    return new ControllerFactory($c);
-});
-
 // Устанавливаем ControllerFactory в Router
 $router = $container->make(Router::class);
 $controllerFactory = $container->make(ControllerFactory::class);
@@ -221,7 +174,7 @@ $router->setControllerFactory($controllerFactory);
 // Сохраняем обновленный Router обратно в контейнер
 $container->instance(Router::class, $router);
 
-// РЕГИСТРИРУЕМ КОНТРОЛЛЕРЫ КАК СИНГЛТОНЫ
+// Регистрируем контроллеры в контейнере
 $container->singleton('HomeController', function($c) {
     return new HomeController(
         $c->make('template'),
@@ -240,6 +193,22 @@ $container->singleton('AdminController', function($c) {
 
 $container->singleton('SystemController', function($c) {
     return new SystemController(
+        $c->make('template'),
+        $c->make('hook'),
+        $c->make('plugin')
+    );
+});
+
+$container->singleton('PluginManagerController', function($c) {
+    return new PluginManagerController(
+        $c->make('template'),
+        $c->make('hook'),
+        $c->make('plugin')
+    );
+});
+
+$container->singleton('HookController', function($c) {
+    return new HookController(
         $c->make('template'),
         $c->make('hook'),
         $c->make('plugin')
@@ -269,9 +238,44 @@ $container->singleton('TestController', function($c) {
 
 error_log("DI container configured successfully");
 
-// ИНИЦИАЛИЗАЦИЯ CORE ЧЕРЕЗ DI
+// ИНИЦИАЛИЗАЦИЯ CORE ЧЕРЕП DI
 try {
     $core = Core::create($container, $config);
+
+    // ЗАГРУЖАЕМ СИСТЕМНЫЕ ПЛАГИНЫ ПОСЛЕ ИНИЦИАЛИЗАЦИИ CORE
+    $systemPlugins = [
+        'SystemCorePlugin',
+        'HookManagerPlugin',
+        'TemplateManagerPlugin',
+        'PluginManagerPlugin',
+        'MigrationManagerPlugin',
+        'AdminDashboardPlugin'
+    ];
+
+    foreach ($systemPlugins as $pluginName) {
+        $pluginFile = APP_PATH . "core/plugins/{$pluginName}/{$pluginName}.php";
+        if (file_exists($pluginFile)) {
+            require_once $pluginFile;
+            if (class_exists($pluginName)) {
+                $plugin = new $pluginName();
+
+                // Устанавливаем зависимости
+                if (method_exists($plugin, 'setHookManager')) {
+                    $plugin->setHookManager($container->make('hook'));
+                }
+                if (method_exists($plugin, 'setTemplateManager')) {
+                    $plugin->setTemplateManager($container->make('template'));
+                }
+
+                // Инициализируем плагин
+                $plugin->initialize();
+                error_log("System plugin initialized: {$pluginName}");
+            }
+        } else {
+            error_log("System plugin not found: {$pluginFile}");
+        }
+    }
+
     $core->init();
 } catch (Throwable $e) {
     if ($config['debug'] ?? true) {
