@@ -314,4 +314,23 @@
         public function getConfig(?string $key = null) {
             return $key ? ($this->config[$key] ?? null) : $this->config;
         }
+        /**
+         * Загружает системные плагины в указанном порядке
+         */
+        public function loadSystemPlugins(array $pluginOrder): void {
+            foreach ($pluginOrder as $pluginName) {
+                $pluginPath = APP_PATH . "core/plugins/{$pluginName}/{$pluginName}.php";
+                if (file_exists($pluginPath)) {
+                    require_once $pluginPath;
+
+                    if (class_exists($pluginName)) {
+                        $plugin = new $pluginName();
+                        $plugin->initialize();
+
+                        // Сохраняем ссылку на плагин
+                        $this->systemPlugins[$pluginName] = $plugin;
+                    }
+                }
+            }
+        }
     }
