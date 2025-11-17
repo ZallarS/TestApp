@@ -39,7 +39,9 @@
                                 <th>Название хука</th>
                                 <th>Тип</th>
                                 <th>Описание</th>
-                                <th>Зарегистрирован</th>
+                                <th>Плагин</th>
+                                <th>Обработчиков</th>
+                                <th>Приоритеты</th>
                                 <th>Время</th>
                             </tr>
                             </thead>
@@ -55,10 +57,10 @@
                                         </strong>
                                     </td>
                                     <td>
-                                        <span style="background: <?php echo $hookInfo['type'] === 'action' ? '#007bff' : '#28a745'; ?>;
-                                                color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">
-                                            <?php echo $hookInfo['type'] === 'action' ? 'Действие' : 'Фильтр'; ?>
-                                        </span>
+                <span style="background: <?php echo $hookInfo['type'] === 'action' ? '#007bff' : '#28a745'; ?>;
+                        color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8em;">
+                    <?php echo $hookInfo['type'] === 'action' ? 'Действие' : 'Фильтр'; ?>
+                </span>
                                     </td>
                                     <td style="color: #666;">
                                         <?php echo htmlspecialchars($hookInfo['description'] ?? 'Без описания'); ?>
@@ -66,8 +68,19 @@
                                     <td style="color: #888;">
                                         <?php echo htmlspecialchars($hookInfo['registered_by'] ?? 'unknown'); ?>
                                     </td>
-                                    <td style="color: #888;">
-                                        <?php echo date('Y-m-d H:i:s', $hookInfo['timestamp'] ?? time()); ?>
+                                    <td style="text-align: center;">
+                <span class="<?php echo ($hookInfo['handlers_count'] ?? 0) > 0 ? 'stat-number' : ''; ?>">
+                    <?php echo $hookInfo['handlers_count'] ?? 0; ?>
+                </span>
+                                    </td>
+                                    <td style="color: #888; font-size: 0.8em;">
+                                        <?php
+                                        $priorities = $hookInfo['priorities'] ?? [];
+                                        echo !empty($priorities) ? implode(', ', $priorities) : '-';
+                                        ?>
+                                    </td>
+                                    <td style="color: #888; font-size: 0.8em;">
+                                        <?php echo date('H:i:s', $hookInfo['timestamp'] ?? time()); ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
