@@ -133,6 +133,15 @@
                     error_log("Found controller in plugin root: {$controllerFileAlt}");
                     return $controllerFileAlt;
                 }
+
+                // ✅ ДОБАВЛЯЕМ: Проверяем системные плагины админки
+                $systemPluginController = APP_PATH . "core/plugins/{$dir}/controllers/{$controller}.php";
+                error_log("Checking system plugin controller: {$systemPluginController}");
+
+                if (file_exists($systemPluginController)) {
+                    error_log("Found controller in system plugin: {$systemPluginController}");
+                    return $systemPluginController;
+                }
             }
 
             error_log("Controller {$controller} not found in any plugin");

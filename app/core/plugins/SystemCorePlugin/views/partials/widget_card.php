@@ -9,21 +9,24 @@ $class = $class ?? '';
 $style = $style ?? '';
 $actions = $actions ?? [];
 $footer = $footer ?? null;
-$collapsible = $collapsible ?? true; // По умолчанию включаем сворачивание
+$collapsible = $collapsible ?? true;
 $collapsed = $collapsed ?? false;
 $width = $width ?? 'auto';
 $height = $height ?? 'auto';
 $draggable = $draggable ?? true;
+
+$height_class = $height ? "widget-height-{$height}" : 'widget-height-auto';
 ?>
 
 <div class="widget-card <?php echo htmlspecialchars($class); ?>
                         widget-width-<?php echo htmlspecialchars($width); ?>
-                        widget-height-<?php echo htmlspecialchars($height); ?>"
+                        <?php echo $height_class; ?>"
      id="<?php echo htmlspecialchars($widget_id); ?>"
      style="<?php echo htmlspecialchars($style); ?>"
      data-widget-id="<?php echo htmlspecialchars($widget_id); ?>"
      data-width="<?php echo htmlspecialchars($width); ?>"
-     <?php if ($draggable): ?>draggable="true"<?php endif; ?>>
+     data-height="<?php echo htmlspecialchars($height); ?>">
+    <!-- Убрали draggable="true" из основной карточки -->
 
     <!-- Заголовок карточки -->
     <div class="widget-card-header">
@@ -42,7 +45,9 @@ $draggable = $draggable ?? true;
             <?php endif; ?>
 
             <?php if ($draggable): ?>
-                <span class="widget-drag-handle" title="Перетащите для изменения положения">⋮⋮</span>
+                <span class="widget-drag-handle"
+                      draggable="true"
+                      title="Перетащите для изменения положения">⋮⋮</span>
             <?php endif; ?>
 
             <!-- Кнопка сворачивания/разворачивания -->
