@@ -8,42 +8,51 @@ class SystemCorePlugin extends BasePlugin {
     public function initialize(): void {
         error_log("SystemCorePlugin initializing...");
 
+        // Получаем зависимости из контейнера
+        $core = Core::getInstance();
+        $router = $core->getManager('router');
+        $templateManager = $core->getManager('template');
+
         // Регистрируем системные маршруты
-        $this->registerSystemRoutes();
+        $this->registerSystemRoutes($router);
 
         // Регистрируем пути к шаблонам плагина
-        $this->registerTemplatePaths();
+        $this->registerTemplatePaths($templateManager);
 
         error_log("SystemCorePlugin initialized successfully");
     }
 
-    private function registerSystemRoutes(): void {
+    private function registerSystemRoutes($router): void {
         try {
-            $core = Core::getInstance();
-            $router = $core->getManager('router');
+            if ($router) {
+                // Главная страница
+                $router->addRoute('GET', '/', 'HomeController@index');
 
-            // Главная страница
-            $router->addRoute('GET', '/', 'HomeController@index');
+                // Системные API
+                $router->addRoute('GET', '/system/health', 'SystemController@healthCheck');
+                $router->addRoute('GET', '/system/info', 'SystemController@systemInfo');
 
-            // Системные API
-            $router->addRoute('GET', '/system/health', 'SystemController@healthCheck');
-            $router->addRoute('GET', '/system/info', 'SystemController@systemInfo');
-
-            error_log("System routes registered successfully");
+                error_log("System routes registered successfully");
+            } else {
+                error_log("Router not available for SystemCorePlugin");
+            }
         } catch (Exception $e) {
             error_log("Error registering system routes: " . $e->getMessage());
         }
     }
 
-    private function registerTemplatePaths(): void {
+    private function registerTemplatePaths($templateManager): void {
         try {
-            $templateManager = Core::getInstance()->getManager('template');
-            $pluginViewsPath = __DIR__ . '/views/';
+            if ($templateManager) {
+                $pluginViewsPath = __DIR__ . '/views/';
 
-            if (is_dir($pluginViewsPath)) {
-                // Регистрируем путь плагина с высоким приоритетом
-                $templateManager->addPath($pluginViewsPath, 'systemcore');
-                error_log("System template paths registered: " . $pluginViewsPath);
+                if (is_dir($pluginViewsPath)) {
+                    // Регистрируем путь плагина
+                    $templateManager->addPath($pluginViewsPath, 'systemcore');
+                    error_log("System template paths registered: " . $pluginViewsPath);
+                }
+            } else {
+                error_log("TemplateManager not available for SystemCorePlugin");
             }
         } catch (Exception $e) {
             error_log("Error registering template paths: " . $e->getMessage());

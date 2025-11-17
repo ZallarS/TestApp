@@ -763,7 +763,402 @@
                 flex-wrap: wrap;
             }
         }
+        /* Стили для виджетов */
+        .widgets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .widget-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .widget-card:hover {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .widget-card-header {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .widget-card-title h4 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .widget-card-subtitle {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .widget-card-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .widget-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .widget-badge.system {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .widget-badge.default {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .widget-drag-handle {
+            cursor: grab;
+            color: #9ca3af;
+            padding: 4px;
+        }
+
+        .widget-drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .widget-card-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            color: #6b7280;
+        }
+
+        .widget-card-toggle:hover {
+            background: #e5e7eb;
+        }
+
+        .widget-card-action {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+
+        .widget-card-action:hover {
+            background: #e5e7eb;
+        }
+
+        .widget-card-content {
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .widget-card-content.collapsed {
+            display: none;
+        }
+
+        .widget-card-footer {
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        /* Размеры виджетов */
+        .widget-width-full { grid-column: 1 / -1; }
+        .widget-width-half { grid-column: span 2; }
+        .widget-width-third { grid-column: span 1; }
+        .widget-width-auto { /* default */ }
+
+        .widget-height-small { min-height: 150px; }
+        .widget-height-medium { min-height: 200px; }
+        .widget-height-large { min-height: 300px; }
+        .widget-height-auto { /* default */ }
+
+        /* Статистика в виджетах */
+        .widget-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+        }
+
+        .widget-stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .stat-warning {
+            color: #dc2626;
+        }
+
+        /* Адаптивность виджетов */
+        @media (max-width: 768px) {
+            .widgets-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .widget-width-half,
+            .widget-width-third {
+                grid-column: 1;
+            }
+        }
+        .widget-card.drag-over {
+            border: 2px dashed #3b82f6;
+            background-color: #f0f9ff;
+        }
+
+        .widget-card.dragging {
+            transform: rotate(5deg);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+
+        .widget-drag-handle {
+            cursor: grab;
+            color: #9ca3af;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .widget-drag-handle:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .widget-drag-handle:active {
+            cursor: grabbing;
+        }
+        .widget-card.drag-over {
+            border: 2px dashed #3b82f6 !important;
+            background-color: #f0f9ff !important;
+            transform: scale(1.02);
+            transition: all 0.2s ease;
+        }
+
+        .widget-card.dragging {
+            transform: rotate(5deg) scale(0.95);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
+
+        /* Убедитесь, что все элементы внутри карточки не мешают перетаскиванию */
+        .widget-card * {
+            pointer-events: none;
+        }
+
+        /* Но разрешаем события для элементов управления */
+        .widget-card-controls *,
+        .widget-card-toggle,
+        .widget-drag-handle {
+            pointer-events: auto !important;
+        }
+
+        .widget-drag-handle {
+            cursor: grab;
+            color: #9ca3af;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .widget-drag-handle:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .widget-drag-handle:active {
+            cursor: grabbing;
+        }
+        /* Улучшенные стили для высоты и прокрутки карточек */
+        .widgets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            align-items: start;
+        }
+
+        .widget-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .widget-card-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            min-height: 0; /* Важно для правильной работы flexbox с overflow */
+        }
+
+        /* Переопределяем высоты для лучшего отображения контента */
+        .widget-height-small {
+            min-height: 200px;
+            max-height: 300px;
+        }
+
+        .widget-height-medium {
+            min-height: 300px;
+            max-height: 400px;
+        }
+
+        .widget-height-large {
+            min-height: 400px;
+            max-height: 500px;
+        }
+
+        .widget-height-full {
+            min-height: 500px;
+            max-height: 600px;
+        }
+
+        /* Улучшаем отображение контента внутри карточек */
+        .widget-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            height: 100%;
+        }
+
+        .system-info {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            height: 100%;
+        }
+
+        .activity-list {
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .activity-items {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Улучшаем скроллбар */
+        .widget-card-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .widget-card-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .widget-card-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .widget-card-content::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .widgets-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .widget-card {
+                max-height: none !important;
+            }
+        }
+        /* Убедитесь, что контент карточки можно прокручивать */
+        .widget-card-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            min-height: 0;
+            cursor: auto; /* Обычный курсор для контента */
+        }
+
+        /* Стили только для handle перетаскивания */
+        .widget-drag-handle {
+            cursor: grab;
+            color: #9ca3af;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            user-select: none; /* Запрещаем выделение текста */
+        }
+
+        .widget-drag-handle:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .widget-drag-handle:active {
+            cursor: grabbing;
+        }
+
+        /* Разрешаем события для всех элементов внутри карточки */
+        .widget-card * {
+            pointer-events: auto;
+        }
+
+        /* Заголовок карточки также должен быть доступен для кликов */
+        .widget-card-header {
+            pointer-events: auto;
+            cursor: default;
+        }
+
+        /* Улучшаем визуальные стили для перетаскивания */
+        .widget-card.drag-over {
+            border: 2px dashed #3b82f6 !important;
+            background-color: #f0f9ff !important;
+            transform: scale(1.02);
+            transition: all 0.2s ease;
+        }
+
+        .widget-card.dragging {
+            transform: rotate(5deg) scale(0.95);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            z-index: 1000;
+        }
     </style>
+
+    <!-- Подключаем CSS из плагинов через AssetManager -->
+    <?php
+    if (class_exists('AssetManager')) {
+        echo AssetManager::renderCss();
+    }
+    ?>
 
     <!-- Хуки админки в head -->
     <?php hook_position('admin_head_start'); ?>
@@ -803,7 +1198,6 @@
 
             <?php hook_position('admin_sidebar_nav_middle'); ?>
 
-
             <?php hook_position('admin_sidebar_nav_end'); ?>
 
             <div style="margin-top: 2rem;">
@@ -817,7 +1211,6 @@
         <?php hook_position('admin_sidebar_end'); ?>
     </aside>
 
-    <!-- Main Content -->
     <main class="admin-main">
         <header class="admin-header">
             <h1><?php echo $page_title ?? $title ?? 'Админка'; ?></h1>
@@ -872,9 +1265,92 @@
         </div>
     </main>
 </div>
-
 <!-- Скрипты админки -->
 <script>
+    // === ГЛОБАЛЬНЫЕ ФУНКЦИИ УПРАВЛЕНИЯ ВИДЖЕТАМИ ===
+
+    window.collapseAllWidgets = function() {
+        document.querySelectorAll('.widget-card').forEach(widget => {
+            const widgetId = widget.id;
+            const contentId = widgetId + '-content';
+            const content = document.getElementById(contentId);
+            const toggleBtn = widget.querySelector('.widget-card-toggle');
+
+            if (toggleBtn && content && !content.classList.contains('collapsed')) {
+                content.classList.add('collapsed');
+                const icon = toggleBtn.querySelector('.toggle-icon');
+                if (icon) icon.textContent = '+';
+                toggleBtn.title = 'Развернуть';
+                localStorage.setItem(contentId + '-collapsed', 'true');
+            }
+        });
+    };
+
+    window.expandAllWidgets = function() {
+        document.querySelectorAll('.widget-card').forEach(widget => {
+            const widgetId = widget.id;
+            const contentId = widgetId + '-content';
+            const content = document.getElementById(contentId);
+            const toggleBtn = widget.querySelector('.widget-card-toggle');
+
+            if (toggleBtn && content && content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                const icon = toggleBtn.querySelector('.toggle-icon');
+                if (icon) icon.textContent = '−';
+                toggleBtn.title = 'Свернуть';
+                localStorage.removeItem(contentId + '-collapsed');
+            }
+        });
+    };
+
+    window.toggleAllWidgets = function() {
+        const allCollapsed = Array.from(document.querySelectorAll('.widget-card-content'))
+            .every(content => content.classList.contains('collapsed'));
+
+        if (allCollapsed) {
+            window.expandAllWidgets();
+        } else {
+            window.collapseAllWidgets();
+        }
+    };
+
+    window.toggleWidgetById = function(widgetId) {
+        const content = document.getElementById(widgetId + '-content');
+        const toggleBtn = document.querySelector(`[data-target="${widgetId}-content"]`);
+
+        if (toggleBtn && content) {
+            const icon = toggleBtn.querySelector('.toggle-icon');
+            if (content.classList.contains('collapsed')) {
+                content.classList.remove('collapsed');
+                if (icon) icon.textContent = '−';
+                localStorage.removeItem(widgetId + '-content-collapsed');
+            } else {
+                content.classList.add('collapsed');
+                if (icon) icon.textContent = '+';
+                localStorage.setItem(widgetId + '-content-collapsed', 'true');
+            }
+        }
+    };
+
+    window.toggleWidget = function(toggleBtn) {
+        const targetId = toggleBtn.getAttribute('data-target');
+        const content = document.getElementById(targetId);
+        const icon = toggleBtn.querySelector('.toggle-icon');
+        const widgetId = targetId.replace('-content', '');
+
+        if (content.classList.contains('collapsed')) {
+            content.classList.remove('collapsed');
+            icon.textContent = '−';
+            toggleBtn.title = 'Свернуть';
+            localStorage.removeItem(targetId + '-collapsed');
+        } else {
+            content.classList.add('collapsed');
+            icon.textContent = '+';
+            toggleBtn.title = 'Развернуть';
+            localStorage.setItem(targetId + '-collapsed', 'true');
+        }
+    };
+
     // Функция для переключения вкладок
     function switchTab(tabName) {
         // Скрываем все вкладки
@@ -898,114 +1374,8 @@
     <?php hook_position('admin_custom_scripts'); ?>
 </script>
 <script>
-    // Функционал для карточек виджетов
-    document.addEventListener('DOMContentLoaded', function() {
-        initializeWidgetsGrid();
-        initializeWidgetCollapse();
-        // Сворачивание/разворачивание карточек
-        document.querySelectorAll('.widget-card-toggle').forEach(toggle => {
-            toggle.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const targetId = this.getAttribute('data-target');
-                const content = document.getElementById(targetId);
-                const icon = this.querySelector('.toggle-icon');
+    // === ФУНКЦИИ ДЛЯ ПЕРЕТАСКИВАНИЯ ВИДЖЕТОВ ===
 
-                if (content.classList.contains('collapsed')) {
-                    content.classList.remove('collapsed');
-                    icon.textContent = '−';
-                } else {
-                    content.classList.add('collapsed');
-                    icon.textContent = '+';
-                }
-            });
-        });
-
-        // Сохранение состояния карточек в localStorage
-        document.querySelectorAll('.widget-card').forEach(card => {
-            const cardId = card.id;
-            const toggleBtn = card.querySelector('.widget-card-toggle');
-
-            if (toggleBtn && localStorage.getItem(cardId + '-collapsed')) {
-                const content = document.getElementById(cardId + '-content');
-                const icon = toggleBtn.querySelector('.toggle-icon');
-                content.classList.add('collapsed');
-                icon.textContent = '+';
-            }
-
-            // Сохраняем состояние при переключении
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', function() {
-                    const content = document.getElementById(cardId + '-content');
-                    if (content.classList.contains('collapsed')) {
-                        localStorage.setItem(cardId + '-collapsed', 'true');
-                    } else {
-                        localStorage.removeItem(cardId + '-collapsed');
-                    }
-                });
-            }
-        });
-
-        // Drag & drop для перестановки виджетов (опционально)
-        let draggedWidget = null;
-
-        document.querySelectorAll('.widget-card').forEach(card => {
-            card.setAttribute('draggable', 'true');
-
-            card.addEventListener('dragstart', function(e) {
-                draggedWidget = this;
-                this.style.opacity = '0.5';
-            });
-
-            card.addEventListener('dragend', function() {
-                this.style.opacity = '1';
-                draggedWidget = null;
-            });
-
-            card.addEventListener('dragover', function(e) {
-                e.preventDefault();
-            });
-
-            card.addEventListener('drop', function(e) {
-                e.preventDefault();
-                if (draggedWidget && draggedWidget !== this) {
-                    const widgetsContainer = this.parentNode;
-                    const thisIndex = Array.from(widgetsContainer.children).indexOf(this);
-                    const draggedIndex = Array.from(widgetsContainer.children).indexOf(draggedWidget);
-
-                    if (draggedIndex < thisIndex) {
-                        widgetsContainer.insertBefore(draggedWidget, this.nextSibling);
-                    } else {
-                        widgetsContainer.insertBefore(draggedWidget, this);
-                    }
-
-                    // Сохраняем порядок в localStorage
-                    saveWidgetsOrder();
-                }
-            });
-        });
-
-        function saveWidgetsOrder() {
-            const order = Array.from(document.querySelectorAll('.widget-card')).map(w => w.id);
-            localStorage.setItem('widgets-order', JSON.stringify(order));
-        }
-
-        function loadWidgetsOrder() {
-            const order = JSON.parse(localStorage.getItem('widgets-order'));
-            if (order) {
-                const container = document.querySelector('.widgets-grid');
-                if (container) {
-                    order.forEach(widgetId => {
-                        const widget = document.getElementById(widgetId);
-                        if (widget) {
-                            container.appendChild(widget);
-                        }
-                    });
-                }
-            }
-        }
-
-        loadWidgetsOrder();
-    });
     function initializeWidgetsGrid() {
         const grid = document.querySelector('.widgets-grid');
         if (!grid) return;
@@ -1022,72 +1392,116 @@
 
     function initializeDragAndDrop() {
         let draggedWidget = null;
-        let dragStartX, dragStartY;
+        let dragOverWidget = null;
 
-        document.querySelectorAll('.widget-card[draggable="true"]').forEach(widget => {
-            widget.addEventListener('dragstart', function(e) {
-                draggedWidget = this;
-                this.classList.add('dragging');
-                dragStartX = e.clientX;
-                dragStartY = e.clientY;
+        // Вешаем обработчики только на handle для перетаскивания
+        document.querySelectorAll('.widget-drag-handle').forEach(handle => {
+            handle.addEventListener('dragstart', function(e) {
+                // Находим родительскую карточку
+                draggedWidget = this.closest('.widget-card');
+                if (!draggedWidget) return;
+
+                draggedWidget.classList.add('dragging');
 
                 // Устанавливаем данные для перетаскивания
-                e.dataTransfer.setData('text/plain', this.id);
+                e.dataTransfer.setData('text/plain', draggedWidget.id);
                 e.dataTransfer.effectAllowed = 'move';
+
+                // Добавляем небольшую задержку для лучшего UX
+                setTimeout(() => {
+                    draggedWidget.style.opacity = '0.4';
+                }, 0);
             });
 
-            widget.addEventListener('dragend', function() {
-                this.classList.remove('dragging');
-                draggedWidget = null;
+            handle.addEventListener('dragend', function() {
+                if (draggedWidget) {
+                    draggedWidget.classList.remove('dragging');
+                    draggedWidget.style.opacity = '1';
+                    draggedWidget = null;
+                }
+
+                // Убираем все классы drag-over
+                document.querySelectorAll('.widget-card.drag-over').forEach(w => {
+                    w.classList.remove('drag-over');
+                });
+                dragOverWidget = null;
+
                 saveWidgetsLayout();
             });
-
-            // Обработчик для handle
-            const dragHandle = widget.querySelector('.widget-drag-handle');
-            if (dragHandle) {
-                dragHandle.addEventListener('mousedown', function(e) {
-                    widget.draggable = true;
-                });
-            }
         });
 
-        // Обработчики для зоны сброса
-        document.querySelectorAll('.widgets-grid').forEach(grid => {
-            grid.addEventListener('dragover', function(e) {
+        // Используем dragover для постоянного отслеживания позиции на карточках
+        document.querySelectorAll('.widget-card').forEach(widget => {
+            // Используем dragover для постоянного отслеживания позиции
+            widget.addEventListener('dragover', function(e) {
                 e.preventDefault();
                 e.dataTransfer.dropEffect = 'move';
 
-                if (!draggedWidget) return;
+                // Если это не перетаскиваемый виджет и он еще не помечен
+                if (this !== draggedWidget && this !== dragOverWidget) {
+                    // Убираем класс с предыдущего виджета
+                    if (dragOverWidget) {
+                        dragOverWidget.classList.remove('drag-over');
+                    }
 
-                const afterElement = getDragAfterElement(grid, e.clientY);
-                if (afterElement) {
-                    grid.insertBefore(draggedWidget, afterElement);
-                } else {
-                    grid.appendChild(draggedWidget);
+                    // Добавляем класс к текущему виджету
+                    this.classList.add('drag-over');
+                    dragOverWidget = this;
                 }
             });
 
-            grid.addEventListener('drop', function(e) {
+            // Обрабатываем уход с виджета
+            widget.addEventListener('dragleave', function(e) {
+                // Проверяем, что мы действительно покидаем виджет, а не переходим на его дочерний элемент
+                const rect = this.getBoundingClientRect();
+                if (e.clientX <= rect.left || e.clientX >= rect.right ||
+                    e.clientY <= rect.top || e.clientY >= rect.bottom) {
+                    this.classList.remove('drag-over');
+                    if (dragOverWidget === this) {
+                        dragOverWidget = null;
+                    }
+                }
+            });
+
+            widget.addEventListener('drop', function(e) {
                 e.preventDefault();
+                this.classList.remove('drag-over');
+
+                if (this !== draggedWidget && draggedWidget) {
+                    const widgets = Array.from(this.parentNode.children);
+                    const thisIndex = widgets.indexOf(this);
+                    const draggedIndex = widgets.indexOf(draggedWidget);
+
+                    // Определяем направление перетаскивания
+                    if (draggedIndex < thisIndex) {
+                        this.parentNode.insertBefore(draggedWidget, this.nextSibling);
+                    } else {
+                        this.parentNode.insertBefore(draggedWidget, this);
+                    }
+
+                    saveWidgetsLayout();
+                }
+
+                dragOverWidget = null;
             });
         });
+
+        // Обрабатываем уход из всей сетки
+        const grid = document.querySelector('.widgets-grid');
+        if (grid) {
+            grid.addEventListener('dragleave', function(e) {
+                // Если уходим из сетки полностью
+                if (!this.contains(e.relatedTarget)) {
+                    document.querySelectorAll('.widget-card.drag-over').forEach(w => {
+                        w.classList.remove('drag-over');
+                    });
+                    dragOverWidget = null;
+                }
+            });
+        }
     }
 
-    function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('.widget-card:not(.dragging)')];
-
-        return draggableElements.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-
-            if (offset < 0 && offset > closest.offset) {
-                return { offset: offset, element: child };
-            } else {
-                return closest;
-            }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-
+    // Остальные функции остаются без изменений...
     function initializeCollapsibleWidgets() {
         document.querySelectorAll('.widget-card-toggle').forEach(toggle => {
             toggle.addEventListener('click', function(e) {
@@ -1148,15 +1562,7 @@
         });
     }
 
-    // Функции управления layout
-    function resetWidgetsLayout() {
-        if (confirm('Вы уверены, что хотите сбросить расположение виджетов к настройкам по умолчанию?')) {
-            localStorage.removeItem('widgets-layout');
-            location.reload();
-        }
-    }
-
-    function compactWidgetsLayout() {
+    window.compactWidgetsLayout = function() {
         const widgets = document.querySelectorAll('.widget-card');
         const grid = document.querySelector('.widgets-grid');
 
@@ -1173,7 +1579,14 @@
         });
 
         saveWidgetsLayout();
-    }
+    };
+
+    window.resetWidgetsLayout = function() {
+        if (confirm('Вы уверены, что хотите сбросить расположение виджетов к настройкам по умолчанию?')) {
+            localStorage.removeItem('widgets-layout');
+            location.reload();
+        }
+    };
 
     function changeWidgetWidth(widgetId, newWidth) {
         const widget = document.getElementById(widgetId);
@@ -1191,20 +1604,10 @@
         }
     }
 
-    // Функция для динамической загрузки активности
-    function loadRecentActivities() {
-        const activityWidget = document.querySelector('.widget-card [class*="recent_activity"]');
-        if (activityWidget) {
-            // Показываем индикатор загрузки
-            activityWidget.innerHTML = '<div class="loading">Загрузка...</div>';
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeWidgetsGrid();
 
-            // В реальной системе здесь был бы AJAX запрос
-            setTimeout(() => {
-                location.reload();
-            }, 1000);
-        }
-    }
-    function initializeWidgetCollapse() {
         // Восстанавливаем состояние свернутости из localStorage
         document.querySelectorAll('.widget-card').forEach(widget => {
             const widgetId = widget.id;
@@ -1216,127 +1619,22 @@
                 const savedState = localStorage.getItem(contentId + '-collapsed');
                 if (savedState === 'true') {
                     content.classList.add('collapsed');
-                    toggleBtn.querySelector('.toggle-icon').textContent = '+';
+                    const icon = toggleBtn.querySelector('.toggle-icon');
+                    if (icon) icon.textContent = '+';
                     toggleBtn.title = 'Развернуть';
                 }
             }
         });
-
-        // Обработчики для кнопок сворачивания
-        document.querySelectorAll('.widget-card-toggle').forEach(toggle => {
-            toggle.addEventListener('click', function(e) {
-                e.stopPropagation();
-                toggleWidget(this);
-            });
-        });
-    }
-
-    function toggleWidget(toggleBtn) {
-        const targetId = toggleBtn.getAttribute('data-target');
-        const content = document.getElementById(targetId);
-        const icon = toggleBtn.querySelector('.toggle-icon');
-        const widgetId = targetId.replace('-content', '');
-
-        if (content.classList.contains('collapsed')) {
-            // Разворачиваем
-            content.classList.remove('collapsed');
-            icon.textContent = '−';
-            toggleBtn.title = 'Свернуть';
-            localStorage.removeItem(targetId + '-collapsed');
-
-            // Сохраняем в сессию (для серверной стороны)
-            saveWidgetStateToServer(widgetId, false);
-        } else {
-            // Сворачиваем
-            content.classList.add('collapsed');
-            icon.textContent = '+';
-            toggleBtn.title = 'Развернуть';
-            localStorage.setItem(targetId + '-collapsed', 'true');
-
-            // Сохраняем в сессию (для серверной стороны)
-            saveWidgetStateToServer(widgetId, true);
-        }
-    }
-
-    function saveWidgetStateToServer(widgetId, collapsed) {
-        // В реальной системе здесь будет AJAX запрос к серверу
-        // Для демонстрации используем sessionStorage как временное решение
-        sessionStorage.setItem('widget-state-' + widgetId, collapsed ? 'collapsed' : 'expanded');
-
-        // Можно также использовать fetch для сохранения на сервере
-        /*
-        fetch('/api/widgets/state', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                widget_id: widgetId,
-                collapsed: collapsed
-            })
-        });
-        */
-    }
-
-    // Функции для управления всеми виджетами
-    function collapseAllWidgets() {
-        document.querySelectorAll('.widget-card').forEach(widget => {
-            const widgetId = widget.id;
-            const contentId = widgetId + '-content';
-            const content = document.getElementById(contentId);
-            const toggleBtn = widget.querySelector('.widget-card-toggle');
-
-            if (toggleBtn && content && !content.classList.contains('collapsed')) {
-                content.classList.add('collapsed');
-                toggleBtn.querySelector('.toggle-icon').textContent = '+';
-                toggleBtn.title = 'Развернуть';
-                localStorage.setItem(contentId + '-collapsed', 'true');
-                saveWidgetStateToServer(widgetId, true);
-            }
-        });
-    }
-
-    function expandAllWidgets() {
-        document.querySelectorAll('.widget-card').forEach(widget => {
-            const widgetId = widget.id;
-            const contentId = widgetId + '-content';
-            const content = document.getElementById(contentId);
-            const toggleBtn = widget.querySelector('.widget-card-toggle');
-
-            if (toggleBtn && content && content.classList.contains('collapsed')) {
-                content.classList.remove('collapsed');
-                toggleBtn.querySelector('.toggle-icon').textContent = '−';
-                toggleBtn.title = 'Свернуть';
-                localStorage.removeItem(contentId + '-collapsed');
-                saveWidgetStateToServer(widgetId, false);
-            }
-        });
-    }
-
-    function toggleAllWidgets() {
-        const allCollapsed = Array.from(document.querySelectorAll('.widget-card-content'))
-            .every(content => content.classList.contains('collapsed'));
-
-        if (allCollapsed) {
-            expandAllWidgets();
-        } else {
-            collapseAllWidgets();
-        }
-    }
-
-    // Функция для переключения конкретного виджета по ID
-    function toggleWidgetById(widgetId) {
-        const content = document.getElementById(widgetId + '-content');
-        const toggleBtn = document.querySelector(`[data-target="${widgetId}-content"]`);
-
-        if (toggleBtn && content) {
-            toggleWidget(toggleBtn);
-        }
-    }
-
+    });
 </script>
+
+<!-- Подключаем JS из плагинов через AssetManager -->
+<?php
+if (class_exists('AssetManager')) {
+    echo AssetManager::renderJs();
+}
+?>
 
 <?php hook_position('admin_body_end'); ?>
 </body>
 </html>
-

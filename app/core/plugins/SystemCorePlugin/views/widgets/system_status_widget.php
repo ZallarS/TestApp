@@ -38,7 +38,7 @@ render_widget_card([
         'type' => 'system'
     ],
     'width' => 'third', // Занимает 1/3 ширины
-    'height' => 'small', // Компактная высота
+    'height' => 'medium', // Компактная высота
     'actions' => $actions,
     'footer' => '<div class="status-indicator status-ok">✅ Система работает нормально</div>'
 ], $content);

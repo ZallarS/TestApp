@@ -29,7 +29,7 @@ class Container {
         // Проверяем алиасы
         $abstract = $this->aliases[$abstract] ?? $abstract;
 
-        // Если это синглтон и уже создан - возвращаем его
+        // ЕСЛИ ЭТО СИНГЛТОН И УЖЕ СОЗДАН - ВОЗВРАЩАЕМ ЕГО
         if (isset($this->instances[$abstract])) {
             return $this->instances[$abstract];
         }
@@ -51,7 +51,7 @@ class Container {
             $object = $this->build($concrete);
         }
 
-        // Сохраняем синглтон
+        // СОХРАНЯЕМ СИНГЛТОН В instances
         if ($binding['singleton']) {
             $this->instances[$abstract] = $object;
         }

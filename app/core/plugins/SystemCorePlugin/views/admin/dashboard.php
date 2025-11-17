@@ -31,26 +31,26 @@
                     </div>
 
                     <div class="controls-group">
-                        <button class="btn btn-secondary btn-sm" onclick="toggleAllWidgets()"
+                        <button class="btn btn-secondary btn-sm" onclick="window.toggleAllWidgets && window.toggleAllWidgets()"
                                 title="Переключить все виджеты">
                             🔄 Переключить все
                             <span class="hotkey-hint">Ctrl+Shift+C</span>
                         </button>
-                        <button class="btn btn-secondary btn-sm" onclick="collapseAllWidgets()"
+                        <button class="btn btn-secondary btn-sm" onclick="window.collapseAllWidgets && window.collapseAllWidgets()"
                                 title="Свернуть все виджеты">
                             📦 Свернуть все
                             <span class="hotkey-hint">Ctrl+Shift+1</span>
                         </button>
-                        <button class="btn btn-secondary btn-sm" onclick="expandAllWidgets()"
+                        <button class="btn btn-secondary btn-sm" onclick="window.expandAllWidgets && window.expandAllWidgets()"
                                 title="Развернуть все виджеты">
                             📖 Развернуть все
                             <span class="hotkey-hint">Ctrl+Shift+2</span>
                         </button>
-                        <button class="btn btn-secondary btn-sm" onclick="compactWidgetsLayout()"
+                        <button class="btn btn-secondary btn-sm" onclick="window.compactWidgetsLayout && window.compactWidgetsLayout()"
                                 title="Уплотнить расположение">
                             📐 Уплотнить
                         </button>
-                        <button class="btn btn-secondary btn-sm" onclick="resetWidgetsLayout()"
+                        <button class="btn btn-secondary btn-sm" onclick="window.resetWidgetsLayout && window.resetWidgetsLayout()"
                                 title="Сбросить к настройкам по умолчанию">
                             🔄 Сбросить
                         </button>
@@ -129,22 +129,26 @@
     });
 
     // Перезаписываем функции управления с обновлением статистики
-    const originalCollapseAllWidgets = collapseAllWidgets;
-    const originalExpandAllWidgets = expandAllWidgets;
-    const originalToggleWidget = toggleWidget;
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.collapseAllWidgets && window.expandAllWidgets && window.toggleWidget) {
+            const originalCollapseAllWidgets = window.collapseAllWidgets;
+            const originalExpandAllWidgets = window.expandAllWidgets;
+            const originalToggleWidget = window.toggleWidget;
 
-    collapseAllWidgets = function() {
-        originalCollapseAllWidgets();
-        setTimeout(updateWidgetsStats, 100);
-    };
+            window.collapseAllWidgets = function() {
+                originalCollapseAllWidgets();
+                setTimeout(updateWidgetsStats, 100);
+            };
 
-    expandAllWidgets = function() {
-        originalExpandAllWidgets();
-        setTimeout(updateWidgetsStats, 100);
-    };
+            window.expandAllWidgets = function() {
+                originalExpandAllWidgets();
+                setTimeout(updateWidgetsStats, 100);
+            };
 
-    toggleWidget = function(toggleBtn) {
-        originalToggleWidget(toggleBtn);
-        setTimeout(updateWidgetsStats, 100);
-    };
+            window.toggleWidget = function(toggleBtn) {
+                originalToggleWidget(toggleBtn);
+                setTimeout(updateWidgetsStats, 100);
+            };
+        }
+    });
 </script>
