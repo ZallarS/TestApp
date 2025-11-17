@@ -44,14 +44,15 @@ abstract class BasePlugin {
 
     public function initialize(): void {
         if ($this->initialized) {
-            error_log("Plugin {$this->getName()} already initialized");
             return;
         }
 
         $this->initialized = true;
-        error_log("🔄 Initializing plugin: {$this->getName()}");
+
+        // Автоматическая регистрация хуков
+        $this->autoRegisterHooks();
+
         $this->onInitialize();
-        error_log("✅ Plugin initialized: {$this->getName()}");
     }
 
     public function getName(): string {
@@ -189,5 +190,54 @@ abstract class BasePlugin {
         $file = $parts[1] ?? $assetPath;
 
         return "/assets/plugin/{$this->getName()}/{$type}/{$file}";
+    }
+    protected function autoRegisterHooks(): void {
+        $reflection = new ReflectionClass($this);
+        $methods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
+
+        foreach ($methods as $method) {
+            $methodName = $method->getName();
+
+            // Регистрируем actions
+            if (strpos($methodName, 'hook_') === 0) {
+                $hookName = substr($methodName, 5);
+                $description = $this->extractMethodDescription($method);
+
+                $this->hookManager->registerHook($hookName, 'action', $description);
+                $this->hookManager->addAction($hookName, [$this, $methodName]);
+            }
+
+            // Регистрируем filters
+            if (strpos($methodName, 'filter_') === 0) {
+                $filterName = substr($methodName, 7);
+                $description = $this->extractMethodDescription($method);
+
+                $this->hookManager->registerHook($filterName, 'filter', $description);
+                $this->hookManager->addFilter($filterName, [$this, $methodName]);
+            }
+        }
+    }
+    /**
+     * Извлекает описание из DocComment метода
+     */
+    private function extractMethodDescription(ReflectionMethod $method): string {
+        $docComment = $method->getDocComment();
+        if (!$docComment) {
+            return 'Автоматически зарегистрированный хук';
+        }
+
+        // Ищем первое описание
+        $lines = explode("\n", $docComment);
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (strpos($line, '* ') === 0 && !strpos($line, '@')) {
+                $description = trim(substr($line, 2));
+                if (!empty($description)) {
+                    return $description;
+                }
+            }
+        }
+
+        return 'Автоматически зарегистрированный хук';
     }
 }

@@ -73,22 +73,26 @@ class AdminController extends BaseController {
     }
 
     public function hookDetails(string $hookName) {
-        $systemInfo = $this->getExtendedSystemInfo();
-        $hooksInfo = $systemInfo['hooks_info'] ?? [];
+        try {
+            $hookDetails = $this->hookManager->getHookDetails($hookName);
 
-        $hookDetails = [
-            'name' => $hookName,
-            'type' => $hooksInfo['dynamic_hooks'][$hookName]['type'] ?? 'unknown',
-            'description' => $hooksInfo['dynamic_hooks'][$hookName]['description'] ?? '',
-            'registered_by' => $hooksInfo['dynamic_hooks'][$hookName]['registered_by'] ?? 'unknown',
-            'handlers' => []
-        ];
+            if (!$hookDetails) {
+                $this->setMessage("Хук '{$hookName}' не найден", 'error');
+                $this->redirect('/admin/hooks');
+                return;
+            }
 
-        $this->renderAdminPage('admin/hook_details', [
-            'title' => "Детали хука: {$hookName}",
-            'hook' => $hookDetails,
-            'current_page' => 'hooks'
-        ]);
+            $this->renderAdminPage('admin/hook_details', [
+                'title' => "Детали хука: {$hookName}",
+                'hook' => $hookDetails,
+                'current_page' => 'hooks'
+            ]);
+
+        } catch (Exception $e) {
+            error_log("Error getting hook details: " . $e->getMessage());
+            $this->setMessage("Ошибка при получении информации о хуке", 'error');
+            $this->redirect('/admin/hooks');
+        }
     }
 
     public function hooksCleanup() {
